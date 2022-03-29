@@ -1,10 +1,7 @@
 import requests
 import re
-import json
-from json import JSONDecodeError
 from collections import OrderedDict
 from bs4 import BeautifulSoup
-import pprint
 class DataProcess(object):
     def get_torrent_link(self, url):
         BASE_TORRENT_LINK = "https://nyaa.si/download/"
@@ -17,7 +14,7 @@ class DataProcess(object):
         magnet = soup.find('a', 'card-footer-item').get('href').strip()
         return magnet
     
-    def parse_rss_feed(self, url, type=None, magnet_links=False):
+    def parse_rss_feed(self):
         """"Parse the RSS feed coming from Nyaa.si website
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         Basic usage:
@@ -29,7 +26,7 @@ class DataProcess(object):
                 json -> Returns a JSON notation
                 Default value -> JSON notation.
         """
-        html = requests.get(url).content
+        html = requests.get('https://nyaa.si/?page=rss').content
         soup = BeautifulSoup(html, features='lxml')
         # saving data as an ordered list
         obj = OrderedDict({
@@ -54,7 +51,6 @@ class DataProcess(object):
                 anime = OrderedDict()
                 anime['title'] = item.title.text.strip()
                 anime['torrent_file'] = self.get_torrent_link(item.guid.text.strip())
-                anime['magnet_link'] = self.get_magnet_link(item.guid.text.strip()) if magnet_links == True else 'n/a'
                 anime['info_link'] = {
                     "url" : item.guid.text.strip(),
                     "isPermaLink" : item.guid.get('isPermaLink')
@@ -76,22 +72,7 @@ class DataProcess(object):
                 },
                 anime['is__remake'] = item.find('nyaa:remake').text.strip()
                 obj['data'].append(anime)
-        try:
-            if type == 'json':
-                return json.dumps(obj)
-            if type == 'dict':
-                return obj
-            if type == 'debug':
-                pp = pprint.PrettyPrinter(indent=4)
-                pp.pprint(type(obj))
-            if type is not ['json', 'dict', 'debug']:
-                raise TypeError('Invalid type, try again. i.e --> type="dict"/type="json"')
-        except JSONDecodeError:
-            raise ('Invalid type, try again. i.e --> rtype="dict"/rtype="json"')
 
 
-
-test = DataProcess()
-# x = test.parse_rss_feed('https://nyaa.si/?page=rss&c=1_0', type="json")
-
-# print(x)
+debug = DataProcess()
+debug.parse_rss_feed()
