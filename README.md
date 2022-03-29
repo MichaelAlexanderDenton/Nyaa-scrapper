@@ -1,2 +1,0 @@
-# nyaa-scrapper
-under construction
