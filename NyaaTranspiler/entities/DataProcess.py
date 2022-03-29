@@ -72,6 +72,7 @@ class DataProcess(object):
                 },
                 anime['is__remake'] = item.find('nyaa:remake').text.strip()
                 obj['data'].append(anime)
+        return obj
 
 
 debug = DataProcess()
