@@ -74,6 +74,27 @@ class DataProcess(object):
                 obj['data'].append(anime)
         return obj
 
-
+    def RSS_create_search_query(self, filter_=None, search_string=None, category=None, username=None):
+        base_url = 'https://nyaa.si/?page=rss'
+        query_array = list()
+        query = str()
+        rss_queries = ['filter', 'q', 'c', 'u']
+        if filter_ is not None:
+            query_array.append(dict({"f" : filter_}))
+        if search_string is not None:
+            search_string = search_string.replace(' ', '+')
+            query_array.append(dict({"q": search_string}))
+        if category is not None:
+            query_array.append(dict({"c" : category}))
+        if username is not None:
+            query_array.append(dict({"u" : username}))
+        
+        for q in query_array:
+            for key, value in q.items():
+                pass
+                query += f"&{key}={value}"
+        
+        print(base_url + query)  
 debug = DataProcess()
-debug.parse_rss_feed()
+# debug.parse_rss_feed()
+debug.RSS_create_search_query(filter_="0", search_string="digimon adventure")

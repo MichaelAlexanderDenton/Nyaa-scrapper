@@ -24,24 +24,26 @@ class NyaaRSS(DataProcess):
         
     def RSS_get_torrent_files(self):
         feed_data = self.RSS_get_feed_data(rtype='dict')
+        base_dir = os.path.dirname(__file__)
+        mdir = os.path.join(base_dir, "automated")
+        if os.path.exists(mdir) == False:
+            os.mkdir(mdir)
+            print('Directory created.')
+        else:
+            print('directory exists.')
         for item in feed_data['data']:  
             with requests.get(item['torrent_file'], stream=True) as r:
-                base_dir = os.path.dirname(__file__)
-                mdir = os.path.join(base_dir, "automated")
                 r.raise_for_status()
-                test = f'<>:"\/|?*'
-                pattern = r'[' + test + ']'
+                invalid_chars = f'<>:"\/|?*'
+                pattern = r'[' + invalid_chars + ']'
                 new_name = re.sub(pattern, ' ', item['title'])
+                with open(os.path.join(mdir, 'log.txt'), 'a', encoding='utf-8') as log:
+                    log.write(f"File saved: {new_name}.torrent \n")
                 with open(os.path.join(mdir, f"{new_name}.torrent"), "wb") as f:
                     for chunk in r.iter_content():
                         if chunk:
                             f.write(chunk)
-            # with requests.get(item['torrent_file,'] , stream=True) as r:
-            #     r.raise_for_status()
-            #     with open(f"automated/{item['title']}.torrent", 'wb') as f:
-            #         for chunk in r.iter_content(chunk_size=512):
-            #             if chunk:
-            #                 f.write(chunk)
+
                 
             
 rss = NyaaRSS()
