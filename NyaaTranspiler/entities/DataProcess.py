@@ -14,7 +14,7 @@ class DataProcess(object):
         magnet = soup.find('a', 'card-footer-item').get('href').strip()
         return magnet
     
-    def parse_rss_feed(self):
+    def parse_rss_feed(self, url):
         """"Parse the RSS feed coming from Nyaa.si website
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         Basic usage:
@@ -26,7 +26,7 @@ class DataProcess(object):
                 json -> Returns a JSON notation
                 Default value -> JSON notation.
         """
-        html = requests.get('https://nyaa.si/?page=rss').content
+        html = requests.get(url).content
         soup = BeautifulSoup(html, features='lxml')
         # saving data as an ordered list
         obj = OrderedDict({
@@ -94,7 +94,7 @@ class DataProcess(object):
                 pass
                 query += f"&{key}={value}"
         
-        print(base_url + query)  
+        return (base_url + query)  
 debug = DataProcess()
 # debug.parse_rss_feed()
-debug.RSS_create_search_query(filter_="0", search_string="digimon adventure")
+

@@ -7,8 +7,8 @@ from json import JSONDecodeError
 import pprint
 import string
 class NyaaRSS(DataProcess):
-    def RSS_get_feed_data(self, rtype=None):
-        feed_data = self.parse_rss_feed()
+    def RSS_get_feed_data(self, url, rtype=None):
+        feed_data = self.parse_rss_feed(url)
         try:
             if rtype == 'json':
                 return json.dumps(feed_data)
@@ -22,8 +22,8 @@ class NyaaRSS(DataProcess):
         except JSONDecodeError:
             raise ('Invalid type, try again. i.e --> rtype="dict"/rtype="json"')
         
-    def RSS_get_torrent_files(self):
-        feed_data = self.RSS_get_feed_data(rtype='dict')
+    def RSS_get_torrent_files(self, url):
+        feed_data = self.RSS_get_feed_data(url, rtype='dict')
         base_dir = os.path.dirname(__file__)
         mdir = os.path.join(base_dir, "automated")
         if os.path.exists(mdir) == False:
@@ -44,11 +44,24 @@ class NyaaRSS(DataProcess):
                         if chunk:
                             f.write(chunk)
 
-                
-            
-rss = NyaaRSS()
-rss.RSS_get_torrent_files()
+    def RSS_query_search_data(self, filter_type=None, query=None, category=None, username=None):
+        search_url = self.RSS_create_search_query(filter_=filter_type, 
+                                     search_string=query, 
+                                     category=category, 
+                                     username=username)
+        search_feed_data = self.RSS_get_feed_data(search_url, rtype='dict')
+        return search_feed_data
+        
+    def RSS_get_query_search_torrents(self, filter_type=None, query=None, category=None, username=None ):
+        search_url = self.RSS_create_search_query(filter_=filter_type, 
+                                     search_string=query, 
+                                     category=category, 
+                                     username=username)
+        self.RSS_get_torrent_files(search_url)
 
-base_dir = os.path.dirname(__file__)
-mdir = os.path.join(base_dir, "automated")
-print(mdir)
+    def RSS_search_by_username(self, username=None):
+        search_url = self.RSS_create_search_query(username=username)
+        self.RSS_get_torrent_files(search_url)
+        
+rss = NyaaRSS()
+rss.RSS_get_query_search_torrents(query='Digimon adventure')
