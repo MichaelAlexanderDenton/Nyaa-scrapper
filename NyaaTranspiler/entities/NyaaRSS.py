@@ -29,7 +29,7 @@ class NyaaRSS(DataProcess):
             raise ('Invalid type, try again. i.e --> rtype="dict"/rtype="json"')
         
     def RSS_get_latest_torrent_files(self, limit=None):
-        return self.get_torrent_files("https://nyaa.si/?page=rss&")
+        return self.get_torrent_files("https://nyaa.si/?page=rss&", limit=limit)
         
         
     def RSS_query_search_data(self, filter_type=None, query=None, category=None, username=None):
@@ -37,6 +37,7 @@ class NyaaRSS(DataProcess):
                                      search_string=query, 
                                      category=category, 
                                      username=username)
+        print(f"Search link: {search_url}")
         return self.parse_rss_feed(search_url)
 
     
@@ -50,16 +51,18 @@ class NyaaRSS(DataProcess):
                                      search_string=query, 
                                      category=category, 
                                      username=username)
-        self.get_torrent_files(search_url)
+        self.get_torrent_files(search_url, limit=limit)
 
     def RSS_search_data_by_username(self, username=None):
         search_url = self.RSS_create_search_query(username=username)
+        print(f"username: {username} \n search link: {search_url}")
         return self.parse_rss_feed(search_url)
         
-    def RSS_search_torrents_by_username(self, username=None):
+    def RSS_get_torrents_by_username(self, username=None):
         search_url = self.RSS_create_search_query(username=username)
+        print(f" username: {username}\nsearch link: {search_url}")
         self.get_torrent_files(search_url)
         
         
 rss = NyaaRSS()
-rss.RSS_get_query_search_torrents(query='Digimon adventure')
+x = rss.RSS_get_torrents_by_username(username="iamartist")

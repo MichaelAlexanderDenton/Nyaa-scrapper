@@ -91,8 +91,9 @@ class DataProcess(object):
                 query += f"&{key}={value}"
         return (base_url + query)
     
+    
     def get_torrent_files(self, url, limit=None):
-        feed_data = self.parse_rss_feed(url)
+        feed_data = self.parse_rss_feed(url, limit=limit)
         base_dir = os.path.dirname(__file__)
         mdir = os.path.join(base_dir, "automated")
         if os.path.exists(mdir) == False:
@@ -100,7 +101,7 @@ class DataProcess(object):
             print('Directory created.')
         else:
             print('directory exists.')
-        for item in feed_data['data']:  
+        for item in feed_data['data']:
             with requests.get(item['torrent_file'], stream=True) as r:
                 r.raise_for_status()
                 invalid_chars = f'<>:"\/|?*'
