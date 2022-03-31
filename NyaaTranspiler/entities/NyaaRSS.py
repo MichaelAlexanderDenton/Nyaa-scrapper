@@ -53,6 +53,7 @@ class NyaaRSS(DataProcess):
                                      username=username)
         self.get_torrent_files(search_url, limit=limit)
 
+
     def RSS_search_data_by_username(self, username=None):
         search_url = self.RSS_create_search_query(username=username)
         print(f"username: {username} \n search link: {search_url}")

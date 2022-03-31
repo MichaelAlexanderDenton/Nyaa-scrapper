@@ -6,6 +6,10 @@ import pprint
 from collections import OrderedDict
 from bs4 import BeautifulSoup
 class DataProcess(object):
+    def __init__(self):
+        self.base__url = "http://nyaa.si/"
+        
+        
     def get_torrent_link(self, url):
         BASE_TORRENT_LINK = "https://nyaa.si/download/"
         torrent_id = re.findall(r'([0-9]+)', url)[0]
@@ -144,10 +148,75 @@ class DataProcess(object):
         for m in test:
             magnet += f"&{urllib.parse.quote(m)}"
 
-        print(magnet)
+        return magnet
             
             
-
-
+    ########################################################
+    # Nyaa Scraper methods/properties
+    ########################################################
+    
+    def parse_scraper_data(self):
+        anime = OrderedDict({
+            "title" : "Nyaa Scraper :: Home"
+        })
+        html = requests.get('https://nyaa.si/').content
+        soup = BeautifulSoup(html, "lxml")
+        items_list = soup.find_all('tr', 'default')
+        for i in items_list[:1]:
+            anime_category = i.select('td:nth-of-type(1)')          # Done
+            anime_name_info = i.select('td:nth-of-type(2)')         # Done
+            anime_torrent_magnet = i.select('td:nth-of-type(3)')    # Done
+            data_size = i.select('td:nth-of-type(4)')               # Done
+            anime_timestamp = i.select('td:nth-of-type(5)')         # Done
+            anime_seeders = i.select('td:nth-of-type(6)')           # Done
+            anime_leechers = i.select('td:nth-of-type(7)')          # Done
+            number_of_downloads = i.select('td:nth-of-type(8)')
+            
+            
+            # Scrape title/hyperlink
+            for info in anime_name_info:
+                link = self.base__url + info.find('a')['href']
+                anime['title'] = info.find('a').text
+                anime['link'] = link
+            
+            # Scrape category
+            for find_category in anime_category:
+                anime['category'] = OrderedDict({
+                    'category__name' : find_category.find('img')['alt'],
+                    'category__tag' : find_category.find('a')['href'].split('=')[1]
+                })
+                
+            # Scrape torrent/magnet links
+            for link in anime_torrent_magnet:
+                torrent__link = self.base__url + link.find('i', 'fa-download').parent['href']
+                magnet__link = link.find('i', 'fa-magnet').parent['href']
+                anime['links'] = OrderedDict({
+                    "torrent__link" : torrent__link,
+                    "magnet__link" : magnet__link
+                })
+            
+            # Scrape filesize
+            anime['size'] = data_size[0].text 
+            
+            # Scrape timestamp
+            time = OrderedDict({
+                "created_at" : anime_timestamp[0].text,
+                "timestamp": anime_timestamp[0].get('data-timestamp'),
+                # "real_time": anime_timestamp[0].get('title')              #JS-executed
+            })        
+            anime['date'] = time
+            # Seeders/Leechers
+            seeders = anime_seeders[0].text
+            leechers = anime_leechers[0].text
+            anime['seeders'] = seeders
+            anime['leechers'] = leechers          
+            
+            # Downloads
+            dnwlds = number_of_downloads[0].text
+            anime['downloads'] = dnwlds
+        
+        pp = pprint.PrettyPrinter(indent=4)
+        pp.pprint(anime)
+                        
 debug = DataProcess()
-debug.create_magnet_link(infohash="5134ad4f3a75072c760b1e2b9268f413d912275f", title="[Fullmetal] Digimon Adventure(1999) - 15Th Anniversary Blu-Ray Box TV + SP [1080p][HEVC 10bits]")
+debug.parse_scraper_data()
