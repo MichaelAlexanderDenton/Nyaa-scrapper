@@ -12,8 +12,7 @@ class DataProcess(object):
     def get_magnet_link(self, url):
         html = requests.get(url).content
         soup = BeautifulSoup(html, 'lxml')
-        magnet = soup.find('a', 'card-footer-item').get('href').strip()
-        return magnet
+        return soup.find('a', 'card-footer-item').get('href').strip()
     
     def parse_rss_feed(self, url, limit=None):
         """"Parse the RSS feed coming from Nyaa.si website
@@ -70,6 +69,8 @@ class DataProcess(object):
             obj['data'].append(anime)
         return obj
 
+
+    # Quality query is missing
     def RSS_create_search_query(self, filter_=None, search_string=None, category=None, username=None):
         base_url = 'https://nyaa.si/?page=rss'
         query_array = list()
@@ -87,12 +88,11 @@ class DataProcess(object):
         
         for q in query_array:
             for key, value in q.items():
-                pass
                 query += f"&{key}={value}"
         return (base_url + query)
     
     def get_torrent_files(self, url, limit=None):
-        feed_data = self.RSS_get_latest_feed_data(url, rtype='dict', limit=limit)
+        feed_data = self.parse_rss_feed(url)
         base_dir = os.path.dirname(__file__)
         mdir = os.path.join(base_dir, "automated")
         if os.path.exists(mdir) == False:
@@ -114,6 +114,5 @@ class DataProcess(object):
                             f.write(chunk)  
                         
 
-debug = DataProcess()
 
 
