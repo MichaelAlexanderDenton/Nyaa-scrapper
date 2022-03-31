@@ -1,6 +1,8 @@
 import requests
+import urllib.parse
 import re
 import os
+import pprint
 from collections import OrderedDict
 from bs4 import BeautifulSoup
 class DataProcess(object):
@@ -115,5 +117,37 @@ class DataProcess(object):
                             f.write(chunk)  
                         
 
+    # This is purely exprimental, not guaranteed to 
+    # work properly long-term due to trackers changing their
+    # udp/port, but we'll see...
+    
+    def create_magnet_link(self, infohash=str(), title=str()):
+        magnet_prefix = "magnet:?xt=urn:"
+        torrent_infohash = f"btih:{infohash}"
+        torrent_title = f"&dn={title}"
+        
+        # Gathering trackers from torrents in the main page and the upload page
+        
+        html = requests.get("https://nyaa.si/").content
+        soup = BeautifulSoup(html, 'lxml')
+        magnets = soup.find_all('i', "fa-magnet")
+        for m in magnets[:3]:
+            x = m.parent['href']
+            x = urllib.parse.unquote(x)
+            # print(f"{x}\n")
+            test = re.findall(r"&tr=(.+)announce", x)[0]
+            test = test.split("&")
+            
+        # Constructing links
+        # ---- Under construction ----
+            magnet = f"{magnet_prefix}{torrent_infohash}{urllib.parse.quote(torrent_title)}"
+        for m in test:
+            magnet += f"&{urllib.parse.quote(m)}"
+
+        print(magnet)
+            
+            
 
 
+debug = DataProcess()
+debug.create_magnet_link(infohash="5134ad4f3a75072c760b1e2b9268f413d912275f", title="[Fullmetal] Digimon Adventure(1999) - 15Th Anniversary Blu-Ray Box TV + SP [1080p][HEVC 10bits]")
