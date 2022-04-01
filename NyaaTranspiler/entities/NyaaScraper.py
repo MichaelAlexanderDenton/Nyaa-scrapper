@@ -1,12 +1,26 @@
 ﻿from bs4 import BeautifulSoup
-class NyaaScraper(object):
+from DataProcess import DataProcess
+class NyaaScraper(DataProcess):
     def __init__(self):
         pass
     
     
-    def get_latest_torrent_data(self):
-        pass
+    def get_latest_torrent_data(self, rtype=None):
+        page_data = self.parse_scraper_data(pages=1)
+        try:
+            if rtype == 'json':
+                return json.dumps(page_data)
+            if rtype == 'dict':
+                return page_data
+            if rtype == 'debug':
+                pp = pprint.PrettyPrinter(indent=4)
+                pp.pprint(type(obj))
+            if rtype is not ['json', 'dict', 'debug']:
+                raise TypeError('Invalid type, try again. i.e --> type="dict"/type="json"')
+        except JSONDecodeError:
+            raise ('Invalid type, try again. i.e --> rtype="dict"/rtype="json"')
     
     
     def get_latest_torrent_files(self):
-        pass
+        pages_data = self.parse_scraper_data(pages=1)
+        

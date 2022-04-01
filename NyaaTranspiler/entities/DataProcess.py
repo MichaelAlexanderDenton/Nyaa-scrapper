@@ -107,6 +107,11 @@ class DataProcess(object):
             print('Directory created.')
         else:
             print('directory exists.')
+        
+        self.get_data(feed_data['data'])
+
+                                                  
+    def get_data(self, item_list):
         for item in feed_data['data']:
             with requests.get(item['torrent_file'], stream=True) as r:
                 r.raise_for_status()
@@ -118,8 +123,8 @@ class DataProcess(object):
                 with open(os.path.join(mdir, f"{new_name}.torrent"), "wb") as f:
                     for chunk in r.iter_content():
                         if chunk:
-                            f.write(chunk)  
-                        
+                            f.write(chunk)
+                            
 
     # This is purely exprimental, not guaranteed to 
     # work properly long-term due to trackers changing their
@@ -155,14 +160,14 @@ class DataProcess(object):
     # Nyaa Scraper methods/properties
     ########################################################
     
-    def parse_scraper_data(self):
-        anime = OrderedDict({
-            "title" : "Nyaa Scraper :: Home"
-        })
-        html = requests.get('https://nyaa.si/').content
+    def parse_scraper_data(self, pages=int()):
+        print(f"----Number of pages to scrape > {pages}")
+        data = dict({'data': list()})
+        html = requests.get(f"http://nyaa.si").content
         soup = BeautifulSoup(html, "lxml")
         items_list = soup.find_all('tr', 'default')
-        for i in items_list[:1]:
+        for i in items_list[:3]:
+            anime = OrderedDict()
             anime_category = i.select('td:nth-of-type(1)')          # Done
             anime_name_info = i.select('td:nth-of-type(2)')         # Done
             anime_torrent_magnet = i.select('td:nth-of-type(3)')    # Done
@@ -170,7 +175,7 @@ class DataProcess(object):
             anime_timestamp = i.select('td:nth-of-type(5)')         # Done
             anime_seeders = i.select('td:nth-of-type(6)')           # Done
             anime_leechers = i.select('td:nth-of-type(7)')          # Done
-            number_of_downloads = i.select('td:nth-of-type(8)')
+            number_of_downloads = i.select('td:nth-of-type(8)')     # Done
             
             
             # Scrape title/hyperlink
@@ -215,8 +220,10 @@ class DataProcess(object):
             dnwlds = number_of_downloads[0].text
             anime['downloads'] = dnwlds
         
-        pp = pprint.PrettyPrinter(indent=4)
-        pp.pprint(anime)
-                        
+            data['data'].append(anime)
+        return data
 debug = DataProcess()
-debug.parse_scraper_data()
+pp = pprint.PrettyPrinter(indent=4)
+pp.pprint(debug.parse_scraper_data(pages=1))
+
+
