@@ -1,4 +1,5 @@
 ﻿from bs4 import BeautifulSoup
+from json import JSONDecodeError
 from DataProcess import DataProcess
 from collections import OrderedDict
 import pprint
@@ -7,8 +8,8 @@ class NyaaScraper(DataProcess):
         self.base__url = "http://nyaa.si/"
     
     
-    def get_latest_torrent_data(self, rtype=None):
-        page_data = self.parse_scraper_data(pages=1)
+    def get_latest_torrent_data(self, rtype='dict'):
+        page_data = self.parse_scraper_data()
         try:
             if rtype == 'json':
                 return json.dumps(page_data)
@@ -32,12 +33,11 @@ class NyaaScraper(DataProcess):
     ##########################################################
     
     def get_data_by_query(self, filter_=None, search_string=None, category=None, username=None, pages=None, per_page=None):
-        pass
         scraper_data = OrderedDict({
             "title" : f"Nyaa Scraper v0.1 by UnrealWarrior",
             "description": f"Nyaa scraper for {search_string}"
         })
-        search_url = self.RSS_create_search_query(
+        search_url = self.create_search_query(
             filter_=filter_, 
             search_string=search_string, 
             category=category, 
@@ -47,7 +47,5 @@ class NyaaScraper(DataProcess):
         return self.parse_scraper_data(url=search_url, pages=pages, per_page=per_page)
         
 debug = NyaaScraper()
-x = debug.get_data_by_query(search_string="Princess Connect!", pages=2, per_page=5)
-p = pprint.PrettyPrinter(indent=4)
-
-p.pprint(x)
+pp = pprint.PrettyPrinter(indent=4)
+pp.pprint(debug.get_data_by_query(search_string='digimon adventure', per_page=5))

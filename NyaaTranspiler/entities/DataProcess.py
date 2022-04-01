@@ -78,7 +78,7 @@ class DataProcess(object):
 
 
     # Quality query is missing
-    def RSS_create_search_query(self, filter_=None, search_string=None, category=None, username=None, search_type="rss"):
+    def create_search_query(self, filter_=None, search_string=None, category=None, username=None, search_type="rss"):
         base_url = 'https://nyaa.si/?page=rss' if search_type == 'rss' else "https://nyaa.si/?"
         query_array = list()
         query = str()
@@ -162,70 +162,82 @@ class DataProcess(object):
     # Nyaa Scraper methods/properties
     ########################################################
     
-    def parse_scraper_data(self, url="http://nyaa.si", pages=None, per_page=None):
+    def parse_scraper_data(self, url="http://nyaa.si/", pages=None, per_page=None):
         if pages == None:
             print("Pages value was not provided.")
-            print("Scraping all pages available")
+            print("Scraping only the first page.")
         else:  
             print(f"----Number of pages to scrape > {pages}")
         data = dict({'data': list()})
         try:
-            html = requests.get(url).content
-            soup = BeautifulSoup(html, "lxml")
-            items_list = soup.find_all('tr', 'default')
-            for i in items_list[:per_page] if per_page is not None else items_list:
-                anime = OrderedDict()
-                anime_category = i.select('td:nth-of-type(1)')          # Done
-                anime_name_info = i.select('td:nth-of-type(2)')         # Done
-                anime_torrent_magnet = i.select('td:nth-of-type(3)')    # Done
-                data_size = i.select('td:nth-of-type(4)')               # Done
-                anime_timestamp = i.select('td:nth-of-type(5)')         # Done
-                anime_seeders = i.select('td:nth-of-type(6)')           # Done
-                anime_leechers = i.select('td:nth-of-type(7)')          # Done
-                number_of_downloads = i.select('td:nth-of-type(8)')     # Done
-                
-                
-                # Scrape title/hyperlink
-                for info in anime_name_info:
-                    link = self.base__url + info.find('a')['href']
-                    anime['title'] = info.find('a').text
-                    anime['link'] = link
-                
-                # Scrape category
-                for find_category in anime_category:
-                    anime['category'] = OrderedDict({
-                        'category__name' : find_category.find('img')['alt'],
-                        'category__tag' : find_category.find('a')['href'].split('=')[1]
-                    })
+            for p in range(1, (2 if pages is None else (pages + 1))):
+                if pages is not None:
+                    create_url = url + f"&p={p}"
+                    print(create_url)
+                html = requests.get(create_url if pages is not None else url).content
+                soup = BeautifulSoup(html, "lxml")
+                items_list = soup.find_all('tr', 'default')
+                for i in items_list[0:per_page] if per_page is not None else items_list:
+                    anime = OrderedDict()
+                    anime_category = i.select('td:nth-of-type(1)')          # Done
+                    anime_name_info = i.select('td:nth-of-type(2)')         # Done
+                    anime_torrent_magnet = i.select('td:nth-of-type(3)')    # Done
+                    data_size = i.select('td:nth-of-type(4)')               # Done
+                    anime_timestamp = i.select('td:nth-of-type(5)')         # Done
+                    anime_seeders = i.select('td:nth-of-type(6)')           # Done
+                    anime_leechers = i.select('td:nth-of-type(7)')          # Done
+                    number_of_downloads = i.select('td:nth-of-type(8)')     # Done
                     
-                # Scrape torrent/magnet links
-                for link in anime_torrent_magnet:
-                    torrent__link = self.base__url + link.find('i', 'fa-download').parent['href']
-                    magnet__link = link.find('i', 'fa-magnet').parent['href']
-                    anime['torrent_file'] = torrent__link
-                    anime['magnet_link'] = magnet__link
+                    
+                    # Scrape title/hyperlink
+                    for info in anime_name_info:
+                        link = self.base__url + info.find('a')['href']
+                        if info.find("a", 'comments'):
+                            anime['title'] = info.find('a').findNext('a').get('title')
+                            anime['link'] = link.split("#")[0].strip()
+                            anime['comments'] = int(info.find('a', 'comments').get('title').split(' ')[0])
+                        else:
+                            anime['title'] = info.find('a').get('title')
+                            anime['link'] = link
+                            anime['comments'] = 0
+                    
+                    # Scrape category
+                    for find_category in anime_category:
+                        anime['category'] = OrderedDict({
+                            'category__name' : find_category.find('img')['alt'],
+                            'category__tag' : find_category.find('a')['href'].split('=')[1]
+                        })
+                        
+                    # Scrape torrent/magnet links
+                    for link in anime_torrent_magnet:
+                        torrent__link = self.base__url + link.find('i', 'fa-download').parent['href']
+                        magnet__link = link.find('i', 'fa-magnet').parent['href']
+                        anime['torrent_file'] = torrent__link
+                        anime['magnet_link'] = magnet__link
+                    
+                    # Scrape filesize
+                    anime['size'] = data_size[0].text 
+                    
+                    # Scrape timestamp
+                    time = OrderedDict({
+                        "created_at" : anime_timestamp[0].text,
+                        "timestamp": anime_timestamp[0].get('data-timestamp'),
+                        # "real_time": anime_timestamp[0].get('title')              #JS-executed
+                    })        
+                    anime['date'] = time
+                    # Seeders/Leechers
+                    seeders = anime_seeders[0].text
+                    leechers = anime_leechers[0].text
+                    anime['seeders'] = seeders
+                    anime['leechers'] = leechers          
+                    
+                    # Downloads
+                    dnwlds = number_of_downloads[0].text
+                    anime['downloads'] = dnwlds
                 
-                # Scrape filesize
-                anime['size'] = data_size[0].text 
+                    data['data'].append(anime)
                 
-                # Scrape timestamp
-                time = OrderedDict({
-                    "created_at" : anime_timestamp[0].text,
-                    "timestamp": anime_timestamp[0].get('data-timestamp'),
-                    # "real_time": anime_timestamp[0].get('title')              #JS-executed
-                })        
-                anime['date'] = time
-                # Seeders/Leechers
-                seeders = anime_seeders[0].text
-                leechers = anime_leechers[0].text
-                anime['seeders'] = seeders
-                anime['leechers'] = leechers          
-                
-                # Downloads
-                dnwlds = number_of_downloads[0].text
-                anime['downloads'] = dnwlds
-            
-                data['data'].append(anime)
+                print(f"End of page {p}")
             return data
         except (urllib3.exceptions.NewConnectionError, urllib3.exceptions.MaxRetryError, requests.exceptions.ConnectionError ) as e:
             print('no connection error')

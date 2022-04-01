@@ -33,7 +33,7 @@ class NyaaRSS(DataProcess):
         
         
     def RSS_query_search_data(self, filter_type=None, query=None, category=None, username=None):
-        search_url = self.RSS_create_search_query(filter_=filter_type, 
+        search_url = self.create_search_query(filter_=filter_type, 
                                      search_string=query, 
                                      category=category, 
                                      username=username)
@@ -47,7 +47,7 @@ class NyaaRSS(DataProcess):
                                       category=None, 
                                       username=None, 
                                       limit=None):
-        search_url = self.RSS_create_search_query(filter_=filter_type, 
+        search_url = self.create_search_query(filter_=filter_type, 
                                      search_string=query, 
                                      category=category, 
                                      username=username)
@@ -55,12 +55,12 @@ class NyaaRSS(DataProcess):
 
 
     def RSS_search_data_by_username(self, username=None):
-        search_url = self.RSS_create_search_query(username=username)
+        search_url = self.create_search_query(username=username)
         print(f"username: {username} \n search link: {search_url}")
         return self.parse_rss_feed(search_url)
         
     def RSS_get_torrents_by_username(self, username=None):
-        search_url = self.RSS_create_search_query(username=username)
+        search_url = self.create_search_query(username=username)
         print(f" username: {username}\nsearch link: {search_url}")
         self.get_torrent_files(search_url)
         
