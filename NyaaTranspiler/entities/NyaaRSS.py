@@ -66,4 +66,4 @@ class NyaaRSS(DataProcess):
         
         
 rss = NyaaRSS()
-x = rss.RSS_get_torrents_by_username(username="iamartist")
+x = rss.RSS_get_latest_torrent_files()

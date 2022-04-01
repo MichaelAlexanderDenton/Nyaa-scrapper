@@ -1,5 +1,6 @@
 import requests
 import urllib.parse
+import urllib3
 import re
 import os
 import pprint
@@ -100,6 +101,12 @@ class DataProcess(object):
     
     def get_torrent_files(self, url, limit=None):
         feed_data = self.parse_rss_feed(url, limit=limit)
+
+        
+        return self.get_data(feed_data)
+
+                                                  
+    def get_data(self, item_list):
         base_dir = os.path.dirname(__file__)
         mdir = os.path.join(base_dir, "automated")
         if os.path.exists(mdir) == False:
@@ -107,12 +114,7 @@ class DataProcess(object):
             print('Directory created.')
         else:
             print('directory exists.')
-        
-        self.get_data(feed_data['data'])
-
-                                                  
-    def get_data(self, item_list):
-        for item in feed_data['data']:
+        for item in item_list['data']:
             with requests.get(item['torrent_file'], stream=True) as r:
                 r.raise_for_status()
                 invalid_chars = f'<>:"\/|?*'
@@ -163,67 +165,69 @@ class DataProcess(object):
     def parse_scraper_data(self, pages=int()):
         print(f"----Number of pages to scrape > {pages}")
         data = dict({'data': list()})
-        html = requests.get(f"http://nyaa.si").content
-        soup = BeautifulSoup(html, "lxml")
-        items_list = soup.find_all('tr', 'default')
-        for i in items_list[:3]:
-            anime = OrderedDict()
-            anime_category = i.select('td:nth-of-type(1)')          # Done
-            anime_name_info = i.select('td:nth-of-type(2)')         # Done
-            anime_torrent_magnet = i.select('td:nth-of-type(3)')    # Done
-            data_size = i.select('td:nth-of-type(4)')               # Done
-            anime_timestamp = i.select('td:nth-of-type(5)')         # Done
-            anime_seeders = i.select('td:nth-of-type(6)')           # Done
-            anime_leechers = i.select('td:nth-of-type(7)')          # Done
-            number_of_downloads = i.select('td:nth-of-type(8)')     # Done
-            
-            
-            # Scrape title/hyperlink
-            for info in anime_name_info:
-                link = self.base__url + info.find('a')['href']
-                anime['title'] = info.find('a').text
-                anime['link'] = link
-            
-            # Scrape category
-            for find_category in anime_category:
-                anime['category'] = OrderedDict({
-                    'category__name' : find_category.find('img')['alt'],
-                    'category__tag' : find_category.find('a')['href'].split('=')[1]
-                })
+        try:
+            html = requests.get(f"http://nyaa.si").content
+            soup = BeautifulSoup(html, "lxml")
+            items_list = soup.find_all('tr', 'default')
+            for i in items_list[:3]:
+                anime = OrderedDict()
+                anime_category = i.select('td:nth-of-type(1)')          # Done
+                anime_name_info = i.select('td:nth-of-type(2)')         # Done
+                anime_torrent_magnet = i.select('td:nth-of-type(3)')    # Done
+                data_size = i.select('td:nth-of-type(4)')               # Done
+                anime_timestamp = i.select('td:nth-of-type(5)')         # Done
+                anime_seeders = i.select('td:nth-of-type(6)')           # Done
+                anime_leechers = i.select('td:nth-of-type(7)')          # Done
+                number_of_downloads = i.select('td:nth-of-type(8)')     # Done
                 
-            # Scrape torrent/magnet links
-            for link in anime_torrent_magnet:
-                torrent__link = self.base__url + link.find('i', 'fa-download').parent['href']
-                magnet__link = link.find('i', 'fa-magnet').parent['href']
-                anime['links'] = OrderedDict({
-                    "torrent__link" : torrent__link,
-                    "magnet__link" : magnet__link
-                })
+                
+                # Scrape title/hyperlink
+                for info in anime_name_info:
+                    link = self.base__url + info.find('a')['href']
+                    anime['title'] = info.find('a').text
+                    anime['link'] = link
+                
+                # Scrape category
+                for find_category in anime_category:
+                    anime['category'] = OrderedDict({
+                        'category__name' : find_category.find('img')['alt'],
+                        'category__tag' : find_category.find('a')['href'].split('=')[1]
+                    })
+                    
+                # Scrape torrent/magnet links
+                for link in anime_torrent_magnet:
+                    torrent__link = self.base__url + link.find('i', 'fa-download').parent['href']
+                    magnet__link = link.find('i', 'fa-magnet').parent['href']
+                    anime['torrent_file'] = torrent__link
+                    anime['magnet_link'] = magnet__link
+                
+                # Scrape filesize
+                anime['size'] = data_size[0].text 
+                
+                # Scrape timestamp
+                time = OrderedDict({
+                    "created_at" : anime_timestamp[0].text,
+                    "timestamp": anime_timestamp[0].get('data-timestamp'),
+                    # "real_time": anime_timestamp[0].get('title')              #JS-executed
+                })        
+                anime['date'] = time
+                # Seeders/Leechers
+                seeders = anime_seeders[0].text
+                leechers = anime_leechers[0].text
+                anime['seeders'] = seeders
+                anime['leechers'] = leechers          
+                
+                # Downloads
+                dnwlds = number_of_downloads[0].text
+                anime['downloads'] = dnwlds
             
-            # Scrape filesize
-            anime['size'] = data_size[0].text 
-            
-            # Scrape timestamp
-            time = OrderedDict({
-                "created_at" : anime_timestamp[0].text,
-                "timestamp": anime_timestamp[0].get('data-timestamp'),
-                # "real_time": anime_timestamp[0].get('title')              #JS-executed
-            })        
-            anime['date'] = time
-            # Seeders/Leechers
-            seeders = anime_seeders[0].text
-            leechers = anime_leechers[0].text
-            anime['seeders'] = seeders
-            anime['leechers'] = leechers          
-            
-            # Downloads
-            dnwlds = number_of_downloads[0].text
-            anime['downloads'] = dnwlds
-        
-            data['data'].append(anime)
-        return data
+                data['data'].append(anime)
+            return data
+        except (urllib3.exceptions.NewConnectionError, urllib3.exceptions.MaxRetryError, requests.exceptions.ConnectionError ) as e:
+            print('no connection error')
+
+    
 debug = DataProcess()
 pp = pprint.PrettyPrinter(indent=4)
-pp.pprint(debug.parse_scraper_data(pages=1))
 
 

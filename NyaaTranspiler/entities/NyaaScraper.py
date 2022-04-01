@@ -2,7 +2,7 @@
 from DataProcess import DataProcess
 class NyaaScraper(DataProcess):
     def __init__(self):
-        pass
+        self.base__url = "http://nyaa.si/"
     
     
     def get_latest_torrent_data(self, rtype=None):
@@ -23,4 +23,8 @@ class NyaaScraper(DataProcess):
     
     def get_latest_torrent_files(self):
         pages_data = self.parse_scraper_data(pages=1)
+        self.get_data(pages_data)
         
+        
+debug = NyaaScraper()
+debug.get_latest_torrent_files()
