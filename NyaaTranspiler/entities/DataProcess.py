@@ -163,6 +163,7 @@ class DataProcess(object):
     ########################################################
     
     def parse_scraper_data(self, url="http://nyaa.si/", pages=None, per_page=None):
+        _count = 0
         if pages == None:
             print("Pages value was not provided.")
             print("Scraping only the first page.")
@@ -234,10 +235,11 @@ class DataProcess(object):
                     # Downloads
                     dnwlds = number_of_downloads[0].text
                     anime['downloads'] = dnwlds
-                
+                    _count += 1
                     data['data'].append(anime)
-                
-                print(f"End of page {p}")
+                if pages is not None:
+                    print(f"End of page {p}")
+            print(f"Total data scrapped: {_count} in {pages} pages.")
             return data
         except (urllib3.exceptions.NewConnectionError, urllib3.exceptions.MaxRetryError, requests.exceptions.ConnectionError ) as e:
             print('no connection error')

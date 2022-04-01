@@ -48,4 +48,4 @@ class NyaaScraper(DataProcess):
         
 debug = NyaaScraper()
 pp = pprint.PrettyPrinter(indent=4)
-pp.pprint(debug.get_data_by_query(search_string='digimon adventure', per_page=5))
+pp.pprint(debug.get_data_by_query(search_string='digimon adventure', per_page=5, pages=2))
