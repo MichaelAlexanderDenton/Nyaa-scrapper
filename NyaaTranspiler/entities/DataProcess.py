@@ -78,11 +78,11 @@ class DataProcess(object):
 
 
     # Quality query is missing
-    def RSS_create_search_query(self, filter_=None, search_string=None, category=None, username=None):
-        base_url = 'https://nyaa.si/?page=rss'
+    def RSS_create_search_query(self, filter_=None, search_string=None, category=None, username=None, search_type="rss"):
+        base_url = 'https://nyaa.si/?page=rss' if search_type == 'rss' else "https://nyaa.si/?"
         query_array = list()
         query = str()
-        rss_queries = ['filter', 'q', 'c', 'u']
+        rss_queries = ['f', 'q', 'c', 'u']
         if filter_ is not None:
             query_array.append(dict({"f" : filter_}))
         if search_string is not None:
@@ -162,14 +162,18 @@ class DataProcess(object):
     # Nyaa Scraper methods/properties
     ########################################################
     
-    def parse_scraper_data(self, pages=int()):
-        print(f"----Number of pages to scrape > {pages}")
+    def parse_scraper_data(self, url="http://nyaa.si", pages=None, per_page=None):
+        if pages == None:
+            print("Pages value was not provided.")
+            print("Scraping all pages available")
+        else:  
+            print(f"----Number of pages to scrape > {pages}")
         data = dict({'data': list()})
         try:
-            html = requests.get(f"http://nyaa.si").content
+            html = requests.get(url).content
             soup = BeautifulSoup(html, "lxml")
             items_list = soup.find_all('tr', 'default')
-            for i in items_list[:3]:
+            for i in items_list[:per_page] if per_page is not None else items_list:
                 anime = OrderedDict()
                 anime_category = i.select('td:nth-of-type(1)')          # Done
                 anime_name_info = i.select('td:nth-of-type(2)')         # Done

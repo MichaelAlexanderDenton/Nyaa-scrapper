@@ -1,5 +1,7 @@
 ﻿from bs4 import BeautifulSoup
 from DataProcess import DataProcess
+from collections import OrderedDict
+import pprint
 class NyaaScraper(DataProcess):
     def __init__(self):
         self.base__url = "http://nyaa.si/"
@@ -20,11 +22,32 @@ class NyaaScraper(DataProcess):
         except JSONDecodeError:
             raise ('Invalid type, try again. i.e --> rtype="dict"/rtype="json"')
     
-    
     def get_latest_torrent_files(self):
         pages_data = self.parse_scraper_data(pages=1)
         self.get_data(pages_data)
         
+    ##########################################################
+    ## search_data_by_pages was removed due to be a spammy
+    ## method to use
+    ##########################################################
+    
+    def get_data_by_query(self, filter_=None, search_string=None, category=None, username=None, pages=None, per_page=None):
+        pass
+        scraper_data = OrderedDict({
+            "title" : f"Nyaa Scraper v0.1 by UnrealWarrior",
+            "description": f"Nyaa scraper for {search_string}"
+        })
+        search_url = self.RSS_create_search_query(
+            filter_=filter_, 
+            search_string=search_string, 
+            category=category, 
+            username=username,
+            search_type="scraper")
+        
+        return self.parse_scraper_data(url=search_url, pages=pages, per_page=per_page)
         
 debug = NyaaScraper()
-debug.get_latest_torrent_files()
+x = debug.get_data_by_query(search_string="Princess Connect!", pages=2, per_page=5)
+p = pprint.PrettyPrinter(indent=4)
+
+p.pprint(x)
