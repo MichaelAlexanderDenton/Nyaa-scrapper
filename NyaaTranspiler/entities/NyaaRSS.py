@@ -3,6 +3,8 @@
         ---Don't overwrite exisiting torrent files/data
         ---Check query if user has submitted valid input
         ---Add more debug console data.
+        ---if page returns empty, put an exception.
+        ---category needs to be parse and converted.
 """
 
 from DataProcess import DataProcess
@@ -13,7 +15,7 @@ from json import JSONDecodeError
 import pprint
 import string
 class NyaaRSS(DataProcess):
-    def RSS_get_latest_feed_data(self, rtype=None, limit=None):
+    def RSS_get_latest_feed_data(self, rtype='dict', limit=None):
         feed_data = self.parse_rss_feed("https://nyaa.si/?page=rss&", limit=limit)
         try:
             if rtype == 'json':
@@ -32,13 +34,20 @@ class NyaaRSS(DataProcess):
         return self.get_torrent_files("https://nyaa.si/?page=rss&", limit=limit)
         
         
-    def RSS_query_search_data(self, filter_type=None, query=None, category=None, username=None):
+    def RSS_query_search_data(self, 
+                              filter_type=None, 
+                              query=None, 
+                              category=None,
+                              username=None,
+                              limit=None):
+        
         search_url = self.create_search_query(filter_=filter_type, 
                                      search_string=query, 
                                      category=category, 
                                      username=username)
+        
         print(f"Search link: {search_url}")
-        return self.parse_rss_feed(search_url)
+        return self.parse_rss_feed(search_url, limit=limit, _desc=query)
 
     
     def RSS_get_query_search_torrents(self, 
@@ -54,16 +63,16 @@ class NyaaRSS(DataProcess):
         self.get_torrent_files(search_url, limit=limit)
 
 
-    def RSS_search_data_by_username(self, username=None):
+    def RSS_search_data_by_username(self, username=None, limit=None):
         search_url = self.create_search_query(username=username)
         print(f"username: {username} \n search link: {search_url}")
-        return self.parse_rss_feed(search_url)
+        return self.parse_rss_feed(search_url, limit=limit)
         
-    def RSS_get_torrents_by_username(self, username=None):
+    def RSS_get_torrents_by_username(self, username=None, limit=None):
         search_url = self.create_search_query(username=username)
         print(f" username: {username}\nsearch link: {search_url}")
-        self.get_torrent_files(search_url)
+        self.get_torrent_files(search_url, limit=limit)
         
-        
+pp = pprint.PrettyPrinter(indent=4)
 rss = NyaaRSS()
-x = rss.RSS_get_latest_torrent_files()
+pp.pprint(rss.RSS_get_torrents_by_username(username="Mr_Kimiko"))

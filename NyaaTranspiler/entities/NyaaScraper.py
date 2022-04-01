@@ -1,4 +1,10 @@
-﻿from bs4 import BeautifulSoup
+﻿"""
+    TODO:
+        ---if page returns empty, put an exception.
+        ---category needs to be parse and converted.
+"""
+
+from bs4 import BeautifulSoup
 from json import JSONDecodeError
 from DataProcess import DataProcess
 from collections import OrderedDict

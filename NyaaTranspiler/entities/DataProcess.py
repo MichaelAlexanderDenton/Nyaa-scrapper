@@ -21,7 +21,8 @@ class DataProcess(object):
         soup = BeautifulSoup(html, 'lxml')
         return soup.find('a', 'card-footer-item').get('href').strip()
     
-    def parse_rss_feed(self, url, limit=None):
+    def parse_rss_feed(self, url, limit=None, _desc=None):
+        _count = 0
         """"Parse the RSS feed coming from Nyaa.si website
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         Basic usage:
@@ -38,7 +39,7 @@ class DataProcess(object):
         # saving data as an ordered list
         obj = OrderedDict({
             "title" : 'Nyaa - Home - Torrent File Feed Parser',
-            "description": 'Feed Parser for Home',
+            "description": f'Feed Parser for {_desc}',
             "atom": {
                 'link': soup.find('atom:link').get('href'),
                 'rel': soup.find('atom:link').get('rel'),
@@ -73,7 +74,9 @@ class DataProcess(object):
                 'value': False if item.find('nyaa:trusted').text.strip() == 'No' else True, 
             },
             anime['is__remake'] = item.find('nyaa:remake').text.strip()
+            _count += 1
             obj['data'].append(anime)
+        print(f"Total of {_count} object(s) were created from the RSS feed.")
         return obj
 
 
@@ -101,32 +104,35 @@ class DataProcess(object):
     
     def get_torrent_files(self, url, limit=None):
         feed_data = self.parse_rss_feed(url, limit=limit)
-
-        
         return self.get_data(feed_data)
 
                                                   
     def get_data(self, item_list):
-        base_dir = os.path.dirname(__file__)
-        mdir = os.path.join(base_dir, "automated")
-        if os.path.exists(mdir) == False:
-            os.mkdir(mdir)
-            print('Directory created.')
-        else:
-            print('directory exists.')
-        for item in item_list['data']:
-            with requests.get(item['torrent_file'], stream=True) as r:
-                r.raise_for_status()
-                invalid_chars = f'<>:"\/|?*'
-                pattern = r'[' + invalid_chars + ']'
-                new_name = re.sub(pattern, ' ', item['title'])
-                with open(os.path.join(mdir, 'log.txt'), 'a', encoding='utf-8') as log:
-                    log.write(f"File saved: {new_name}.torrent \n")
-                with open(os.path.join(mdir, f"{new_name}.torrent"), "wb") as f:
-                    for chunk in r.iter_content():
-                        if chunk:
-                            f.write(chunk)
-                            
+        try:
+            _count = 0
+            base_dir = os.path.dirname(__file__)
+            mdir = os.path.join(base_dir, "automated")
+            if os.path.exists(mdir) == False:
+                os.mkdir(mdir)
+                print('Directory created.')
+            else:
+                print('directory exists.')
+            for item in item_list['data']:
+                with requests.get(item['torrent_file'], stream=True) as r:
+                    r.raise_for_status()
+                    invalid_chars = f'<>:"\/|?*'
+                    pattern = r'[' + invalid_chars + ']'
+                    new_name = re.sub(pattern, ' ', item['title'])[:155]                # As Windows files are 155 character-limited.
+                    with open(os.path.join(mdir, 'log.txt'), 'a', encoding='utf-8') as log:
+                        log.write(f"File saved: {new_name}.torrent \n")
+                        with open(os.path.join(mdir, f"{new_name}.torrent"), "wb") as f:
+                            for chunk in r.iter_content():
+                                if chunk:
+                                    f.write(chunk)
+                    _count += 1
+        finally:
+            print(f"Downloaded {_count} torrent files.")
+                        
 
     # This is purely exprimental, not guaranteed to 
     # work properly long-term due to trackers changing their
