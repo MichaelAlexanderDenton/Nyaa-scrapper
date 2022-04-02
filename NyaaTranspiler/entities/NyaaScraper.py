@@ -14,8 +14,13 @@ import json
 import pprint
 class NyaaScraper(DataProcess):
     def __init__(self):
+        super().__init__()
         self.base__url = "http://nyaa.si/"
     
+    ##################################################################
+    ## Debug Methods for NyaaScraper
+    ## You shouldn't be using these methods to get your data
+    ##################################################################
     
     def _debug_show_titles(self):
         page_data = self.parse_scraper_data()
@@ -45,11 +50,18 @@ class NyaaScraper(DataProcess):
         pages_data = self.parse_scraper_data(pages=pages, per_page=per_page)
         self.get_data(pages_data)
         
+    
+    def get_latest_magnet_links(self, pages=None, per_page=None):
+        pages_data = self.parse_scraper_data(pages=pages, per_page=per_page)
+        self.get_magnet_links(pages_data)
+        
+        
     ##########################################################
     ## search_data_by_pages was removed due to be a spammy
     ## method to use
     ## Might add later.
     ##########################################################
+    
     
     def get_data_by_query(self, filter_=None, search_string=None, category=None, username=None, pages=None, per_page=None):
         # Maybe we can move this somewhere else...
@@ -65,6 +77,7 @@ class NyaaScraper(DataProcess):
             search_type="scraper")
         print(f"Search link: {search_url}")
         return self.parse_scraper_data(url=search_url, pages=pages, per_page=per_page)
+    
     
     def get_torrent_files_by_query(self,
                                    filter_=None,
@@ -89,3 +102,4 @@ class NyaaScraper(DataProcess):
         
 debug = NyaaScraper()
 pp = pprint.PrettyPrinter(indent=4)
+debug.get_latest_magnet_links()

@@ -1,3 +1,7 @@
+"""
+    --Creating the automated directory needs its own function called by __init__
+"""
+
 import requests
 import urllib.parse
 import urllib3
@@ -9,6 +13,7 @@ from bs4 import BeautifulSoup
 class DataProcess(object):
     def __init__(self):
         self.base__url = "http://nyaa.si/"
+        self.base__dir = os.path.dirname(__file__)
         
         
     def get_torrent_link(self, url):
@@ -250,6 +255,25 @@ class DataProcess(object):
         except (urllib3.exceptions.NewConnectionError, urllib3.exceptions.MaxRetryError, requests.exceptions.ConnectionError ) as e:
             print('no connection error')
 
-    
+
+    def get_magnet_links(self, item_list):
+        try:
+            _count = 0
+            mdir = os.path.join(self.base__dir, "automated")
+            if os.path.exists(mdir) == False:
+                os.mkdir(mdir)
+                print('Directory created.')
+            else:
+                print('directory exists.')
+
+            with open(os.path.join(mdir, 'magnets.txt'), "w") as f:
+                for i in item_list['data']:
+                    f.write(f"{i['magnet_link']} \n")
+                    _count += 1
+            f.close()
+        finally:
+            print(f"Saved {_count} magnet links.")
+            
+            
 debug = DataProcess()
 pp = pprint.PrettyPrinter(indent=4)
