@@ -2,20 +2,28 @@
     TODO:
         ---if page returns empty, put an exception.
         ---category needs to be parse and converted.
+        ---get files by their tier (trusted, success, not-trusted, neutral...)
 """
 
 from bs4 import BeautifulSoup
 from json import JSONDecodeError
 from DataProcess import DataProcess
 from collections import OrderedDict
+import json
 import pprint
 class NyaaScraper(DataProcess):
     def __init__(self):
         self.base__url = "http://nyaa.si/"
     
-    
-    def get_latest_torrent_data(self, rtype='dict'):
+    def debug_show_titles(self):
         page_data = self.parse_scraper_data()
+        mlist = list()
+        for i in page_data['data']:
+            mlist.append(i['title'])
+            
+        return mlist
+    def get_latest_torrent_data(self, rtype='dict', pages=None, per_page=None):
+        page_data = self.parse_scraper_data(pages=pages, per_page=per_page)
         try:
             if rtype == 'json':
                 return json.dumps(page_data)
@@ -54,4 +62,4 @@ class NyaaScraper(DataProcess):
         
 debug = NyaaScraper()
 pp = pprint.PrettyPrinter(indent=4)
-pp.pprint(debug.get_data_by_query(search_string='digimon adventure', per_page=5, pages=2))
+print(len(debug.debug_show_titles()))

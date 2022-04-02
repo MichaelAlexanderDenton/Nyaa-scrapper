@@ -5,6 +5,7 @@
         ---Add more debug console data.
         ---if page returns empty, put an exception.
         ---category needs to be parse and converted.
+        ---get files by their tier (trusted, success, not-trusted, neutral...)
 """
 
 from DataProcess import DataProcess
@@ -72,7 +73,3 @@ class NyaaRSS(DataProcess):
         search_url = self.create_search_query(username=username)
         print(f" username: {username}\nsearch link: {search_url}")
         self.get_torrent_files(search_url, limit=limit)
-        
-pp = pprint.PrettyPrinter(indent=4)
-rss = NyaaRSS()
-pp.pprint(rss.RSS_get_torrents_by_username(username="Mr_Kimiko"))

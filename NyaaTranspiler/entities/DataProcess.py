@@ -175,15 +175,15 @@ class DataProcess(object):
             print("Scraping only the first page.")
         else:  
             print(f"----Number of pages to scrape > {pages}")
-        data = dict({'data': list()})
+        data = OrderedDict({'data': list()})
         try:
             for p in range(1, (2 if pages is None else (pages + 1))):
                 if pages is not None:
-                    create_url = url + f"&p={p}"
+                    create_url = url + f"?p={p}"
                     print(create_url)
                 html = requests.get(create_url if pages is not None else url).content
                 soup = BeautifulSoup(html, "lxml")
-                items_list = soup.find_all('tr', 'default')
+                items_list = soup.find('tbody').find_all('tr')
                 for i in items_list[0:per_page] if per_page is not None else items_list:
                     anime = OrderedDict()
                     anime_category = i.select('td:nth-of-type(1)')          # Done
@@ -245,7 +245,7 @@ class DataProcess(object):
                     data['data'].append(anime)
                 if pages is not None:
                     print(f"End of page {p}")
-            print(f"Total data scrapped: {_count} in {pages} pages.")
+            print(f"Total data scraped: {_count} in {pages} pages.") if pages is not None else print(f'Total data scraped: {_count} in one page.')
             return data
         except (urllib3.exceptions.NewConnectionError, urllib3.exceptions.MaxRetryError, requests.exceptions.ConnectionError ) as e:
             print('no connection error')
@@ -253,5 +253,3 @@ class DataProcess(object):
     
 debug = DataProcess()
 pp = pprint.PrettyPrinter(indent=4)
-
-
