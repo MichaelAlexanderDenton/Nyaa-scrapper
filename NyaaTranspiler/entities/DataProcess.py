@@ -184,7 +184,7 @@ class DataProcess(object):
         try:
             for p in range(1, (2 if pages is None else (pages + 1))):
                 if pages is not None:
-                    create_url = url + f"?p={p}"
+                    create_url = url + f"&?p={p}"
                     print(create_url)
                 html = requests.get(create_url if pages is not None else url).content
                 soup = BeautifulSoup(html, "lxml")

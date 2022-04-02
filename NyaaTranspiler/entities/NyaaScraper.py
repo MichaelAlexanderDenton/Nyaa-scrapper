@@ -4,6 +4,8 @@
         ---category needs to be parse and converted.
         ---get files by their tier (trusted, success, not-trusted, neutral...)
         ---Add an exception if the page scrapped returned nothing
+        ---Magnet links file can have more file info as optional
+        ---"optional" add exceeding pages exception
 """
 
 from bs4 import BeautifulSoup
@@ -99,7 +101,45 @@ class NyaaScraper(DataProcess):
         data = self.parse_scraper_data(url=search_url)
         return self.get_data(data)
 
+    def get_magnet_links_by_query(self,
+                                filter_=None,
+                                search_string=None,
+                                category=None,
+                                username=None,
+                                pages=None,
+                                per_page=None):
+        search_url = self.create_search_query(filter_=filter_,
+                                              search_string=search_string,
+                                              category=category,
+                                              username=username,
+                                              search_type='scraper')
+        print(f"Search link {search_url}")
+        data = self.parse_scraper_data(url=search_url, pages=pages, per_page=per_page)
+        return self.get_magnet_links(data)
+
+    def get_data_by_username(self, username, rtype='dict', pages=None, per_page=None):
+        search_url = self.create_search_query(username=username, search_type='scraper')
+        print(f"Search link {search_url}")
+        data = self.parse_scraper_data(url=search_url, pages=pages, per_page=per_page)
+        if rtype == 'dict':
+            return data
+        if rtype == 'json':
+            return json.dumps(data)
+        if rtype is not ["dict, json"]:
+            raise TypeError("Specify data type for 'rtype' argument. 'dict' to return a dictionary, 'json' for JSON object notation.")
+
+    def get_files_by_username(self, username:None, rtype='torrent', pages=None, per_page=None):
+        search_url = self.create_search_query(username=username, search_type='scraper')
+        print(f"Search link {search_url}")
+        data = self.parse_scraper_data(url=search_url, pages=pages, per_page=per_page)
+        if rtype == 'magnet':
+            return self.get_magnet_links(data)
+        if rtype == 'torrent':
+            return self.get_data(data)
+        if rtype is not ['magnet', 'torrent']:
+            raise TypeError("Please specify return type. either 'magnet' for links / 'torrent' for files ")
+        
         
 debug = NyaaScraper()
 pp = pprint.PrettyPrinter(indent=4)
-debug.get_latest_magnet_links()
+
