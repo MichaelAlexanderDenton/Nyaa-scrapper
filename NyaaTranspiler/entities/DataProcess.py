@@ -1,5 +1,6 @@
 """
-    --Creating the automated directory needs its own function called by __init__
+    ----Creating the automated directory needs its own function called by __init__
+    ----requests.exceptions.HTTPError: 404 Client Error: NOT FOUND for url: https://nyaa.si/download/647951
 """
 
 import requests
@@ -14,6 +15,8 @@ class DataProcess(object):
     def __init__(self):
         self.base__url = "http://nyaa.si/"
         self.base__dir = os.path.dirname(__file__)
+        self.base__torrent__link = "https://nyaa.si/download/"
+        self.base__view__link = "https://nyaa.si/view/"
         
         
     def get_torrent_link(self, url):
@@ -21,6 +24,11 @@ class DataProcess(object):
         torrent_id = re.findall(r'([0-9]+)', url)[0]
         return '{0}{1}.torrent'.format(BASE_TORRENT_LINK, torrent_id)
     
+    
+    def create_torrent_link_by_id(self, id=int()):
+        return '{0}{1}.torrent'.format(self.base__torrent__link, id)
+    
+        
     def get_magnet_link(self, url):
         html = requests.get(url).content
         soup = BeautifulSoup(html, 'lxml')
@@ -106,12 +114,45 @@ class DataProcess(object):
                 query += f"&{key}={value}"
         return (base_url + query)
     
-    
+    # RSS torrent file retrieval
     def get_torrent_files(self, url, limit=None):
         feed_data = self.parse_rss_feed(url, limit=limit)
         return self.get_data(feed_data)
 
-                                                  
+    def get_magnet(self, id_):
+        view_link = "{0}{1}".format(self.base__view__link, str(id_))
+        html = requests.get(view_link).content
+        soup = BeautifulSoup(html, 'lxml')
+        return soup.find('a', 'card-footer-item').get('href')
+
+    def get_file(self, id_):
+        try:
+            # get file name first
+            html = requests.get((self.base__view__link + str(id_))).content
+            soup = BeautifulSoup(html, 'lxml')
+            title = soup.find('h3', 'panel-title').text.strip()
+            url = f"{self.base__torrent__link}{id_}.torrent"
+            mdir = os.path.join(self.base__dir, "automated")
+            if os.path.exists(mdir) == False:
+                os.mkdir(mdir)
+                print('Directory created.')
+            else:
+                print('directory exists.')
+            with requests.get(url, stream=True) as r:
+                r.raise_for_status()
+                invalid_chars = f'<>:"\/|?*'
+                pattern = r'[' + invalid_chars + ']'
+                new_name = re.sub(pattern, ' ', title)[:155]                # As Windows files are 155 character-limited.
+                with open(os.path.join(mdir, 'log.txt'), 'a', encoding='utf-8') as log:
+                    log.write(f"File saved: {new_name}.torrent \n")
+                    with open(os.path.join(mdir, f"{new_name}.torrent"), "wb") as f:
+                        for chunk in r.iter_content():
+                            if chunk:
+                                f.write(chunk)      
+        finally:
+            print('file saved.')
+
+    # get multiple files from structure                  
     def get_data(self, item_list):
         try:
             _count = 0

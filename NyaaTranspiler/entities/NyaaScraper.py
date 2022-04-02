@@ -140,6 +140,12 @@ class NyaaScraper(DataProcess):
             raise TypeError("Please specify return type. either 'magnet' for links / 'torrent' for files ")
         
         
+    def get_torrent_by_id(self, id_=None):
+        self.get_file(id_=id_)
+    
+    
+    def get_magnet_by_id(self, id_=None):
+        return self.get_magnet(id_=id_)
+        
 debug = NyaaScraper()
 pp = pprint.PrettyPrinter(indent=4)
-
