@@ -1,6 +1,6 @@
 ﻿"""
     TODO:
-        ---Don't overwrite exisiting torrent files/data
+        ---overwrite/not existing torrent files/data
         ---Check query if user has submitted valid input
         ---Add more debug console data.
         ---if page returns empty, put an exception.
@@ -16,60 +16,65 @@ from json import JSONDecodeError
 import pprint
 import string
 class NyaaRSS(DataProcess):
-    def RSS_get_latest_feed_data(self, rtype='dict', limit=None):
-        feed_data = self.parse_rss_feed("https://nyaa.si/?page=rss&", limit=limit)
+    def __init__(self):
+        super().__init__()
+        
+    
+    def get_latest_feed_data(self, rtype='dict', limit=None):
+        pp = pprint.PrettyPrinter(indent=4)
+        feed_data = self._parse_rss_feed(limit=limit)
         try:
             if rtype == 'json':
                 return json.dumps(feed_data)
             if rtype == 'dict':
                 return feed_data
             if rtype == 'debug':
-                pp = pprint.PrettyPrinter(indent=4)
-                pp.pprint(type(obj))
-            if rtype is not ['json', 'dict', 'debug']:
-                raise TypeError('Invalid type, try again. i.e --> type="dict"/type="json"')
+                print(f"Object type: {feed_data.__class__()}")
+                pp.pprint(feed_data)
         except JSONDecodeError:
-            raise ('Invalid type, try again. i.e --> rtype="dict"/rtype="json"')
+            raise ('Error while parsing data to JSON notation.')
         
-    def RSS_get_latest_torrent_files(self, limit=None):
-        return self.get_torrent_files("https://nyaa.si/?page=rss&", limit=limit)
+    def get_latest_torrent_files(self, limit=None):
+        return self._rss_get_torrent_files(limit=limit)
         
         
-    def RSS_query_search_data(self, 
-                              filter_type=None, 
-                              query=None, 
-                              category=None,
-                              username=None,
-                              limit=None):
+    def query_search_data(self, 
+                            filter_=None, 
+                            search_query=None, 
+                            category=None,
+                            username=None,
+                            limit=None):
         
-        search_url = self.create_search_query(filter_=filter_type, 
-                                     search_string=query, 
+        search_url = self._create_search_query(filter_=filter_, 
+                                     search_query=search_query, 
                                      category=category, 
-                                     username=username)
+                                     username=username,
+                                     search_type='rss')
         
-        print(f"Search link: {search_url}")
-        return self.parse_rss_feed(search_url, limit=limit, _desc=query)
+        return self._parse_rss_feed(search_url, limit=limit)
 
     
-    def RSS_get_query_search_torrents(self, 
-                                      filter_type=None, 
-                                      query=None, 
-                                      category=None, 
-                                      username=None, 
-                                      limit=None):
-        search_url = self.create_search_query(filter_=filter_type, 
-                                     search_string=query, 
-                                     category=category, 
-                                     username=username)
-        self.get_torrent_files(search_url, limit=limit)
-
-
-    def RSS_search_data_by_username(self, username=None, limit=None):
-        search_url = self.create_search_query(username=username)
-        print(f"username: {username} \n search link: {search_url}")
-        return self.parse_rss_feed(search_url, limit=limit)
+    def query_search_torrents(self, 
+                                filter_=None, 
+                                search_query=None, 
+                                category=None, 
+                                username=None, 
+                                limit=None):
         
-    def RSS_get_torrents_by_username(self, username=None, limit=None):
-        search_url = self.create_search_query(username=username)
-        print(f" username: {username}\nsearch link: {search_url}")
-        self.get_torrent_files(search_url, limit=limit)
+        search_url = self._create_search_query(filter_=filter_, 
+                                     search_query=search_query, 
+                                     category=category, 
+                                     username=username,
+                                     search_type='rss')
+        
+        self._rss_get_torrent_files(url=search_url, limit=limit)
+
+
+    def get_data_by_username(self, username=None, limit=None):
+        search_url = self._create_search_query(username=username, search_type='rss')
+        return self._parse_rss_feed(search_url, limit=limit)
+        
+    def get_torrents_by_username(self, username=None, limit=None):
+        search_url = self._create_search_query(username=username, search_type='rss')
+        self._rss_get_torrent_files(search_url, limit=limit)
+

@@ -13,10 +13,11 @@ from collections import OrderedDict
 from bs4 import BeautifulSoup
 class DataProcess(object):
     def __init__(self):
-        self.base__url = "http://nyaa.si/"
-        self.base__dir = os.path.dirname(__file__)
+        self.base__url = "http://nyaa.si/?"
+        self.base__rss_url = "https://nyaa.si/?page=rss"
         self.base__torrent__link = "https://nyaa.si/download/"
         self.base__view__link = "https://nyaa.si/view/"
+        self.base__dir = os.path.dirname(__file__)
         
         
     def get_torrent_link(self, url):
@@ -34,25 +35,15 @@ class DataProcess(object):
         soup = BeautifulSoup(html, 'lxml')
         return soup.find('a', 'card-footer-item').get('href').strip()
     
-    def parse_rss_feed(self, url, limit=None, _desc=None):
+    def _parse_rss_feed(self, url=None, limit=None):
         _count = 0
-        """"Parse the RSS feed coming from Nyaa.si website
-            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        Basic usage:
-            self.parse_rss_feed('http://nyaa.si/?page=rss&more_query_chain_here', 'json')
-        Args:
-            url (str): URL to the desired RSS feed
-            type (str, optional): Data structure returned from the function:
-                dict -> Returns a dictionnary with key/value pairs
-                json -> Returns a JSON notation
-                Default value -> JSON notation.
-        """
+        url = self.base__rss_url if url is None else url
         html = requests.get(url).content
         soup = BeautifulSoup(html, features='lxml')
         # saving data as an ordered list
         obj = OrderedDict({
             "title" : 'Nyaa - Home - Torrent File Feed Parser',
-            "description": f'Feed Parser for {_desc}',
+            "description": f'Feed Parser for Home',
             "atom": {
                 'link': soup.find('atom:link').get('href'),
                 'rel': soup.find('atom:link').get('rel'),
@@ -93,17 +84,15 @@ class DataProcess(object):
         return obj
 
 
-    # Quality query is missing
-    def create_search_query(self, filter_=None, search_string=None, category=None, username=None, search_type="rss"):
-        base_url = 'https://nyaa.si/?page=rss' if search_type == 'rss' else "https://nyaa.si/?"
+    def _create_search_query(self, filter_=None, search_query=None, category=None, username=None, search_type=None):
+        base_url = self.base__rss_url if search_type == 'rss' else self.base__url
         query_array = list()
         query = str()
-        rss_queries = ['f', 'q', 'c', 'u']
         if filter_ is not None:
             query_array.append(dict({"f" : filter_}))
-        if search_string is not None:
-            search_string = search_string.replace(' ', '+')
-            query_array.append(dict({"q": search_string}))
+        if search_query is not None:
+            search_query = search_query.replace(' ', '+')
+            query_array.append(dict({"q": search_query}))
         if category is not None:
             query_array.append(dict({"c" : category}))
         if username is not None:
@@ -112,18 +101,16 @@ class DataProcess(object):
         for q in query_array:
             for key, value in q.items():
                 query += f"&{key}={value}"
-        return (base_url + query)
+                
+        link = base_url + query  
+        print(f"Search link: {link}")
+        return link
     
     # RSS torrent file retrieval
-    def get_torrent_files(self, url, limit=None):
-        feed_data = self.parse_rss_feed(url, limit=limit)
+    def _rss_get_torrent_files(self, url=None, limit=None):
+        feed_data = self._parse_rss_feed(url=url, limit=limit)
         return self.get_data(feed_data)
 
-    def get_magnet(self, id_):
-        view_link = "{0}{1}".format(self.base__view__link, str(id_))
-        html = requests.get(view_link).content
-        soup = BeautifulSoup(html, 'lxml')
-        return soup.find('a', 'card-footer-item').get('href')
 
     def get_file(self, id_):
         try:
@@ -154,21 +141,30 @@ class DataProcess(object):
 
     # get multiple files from structure                  
     def get_data(self, item_list):
+        """
+            Download torrent files from a list of item provided by _parse_rss_feed()
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        args:
+            item_list   --> a list of items with item'[torrent_link'] attr to retrieve torrent link
+            
+        """
         try:
             _count = 0
-            base_dir = os.path.dirname(__file__)
-            mdir = os.path.join(base_dir, "automated")
+            mdir = os.path.join(self.base__dir, "automated")
+            # check if directory exists
             if os.path.exists(mdir) == False:
                 os.mkdir(mdir)
                 print('Directory created.')
             else:
                 print('directory exists.')
+                
             for item in item_list['data']:
                 with requests.get(item['torrent_file'], stream=True) as r:
                     r.raise_for_status()
                     invalid_chars = f'<>:"\/|?*'
                     pattern = r'[' + invalid_chars + ']'
-                    new_name = re.sub(pattern, ' ', item['title'])[:155]                # As Windows files are 155 character-limited.
+                    new_name = re.sub(pattern, ' ', item['title'])[:155]        # As Windows files are 155 character-limited.
                     with open(os.path.join(mdir, 'log.txt'), 'a', encoding='utf-8') as log:
                         log.write(f"File saved: {new_name}.torrent \n")
                         with open(os.path.join(mdir, f"{new_name}.torrent"), "wb") as f:
@@ -178,6 +174,12 @@ class DataProcess(object):
                     _count += 1
         finally:
             print(f"Downloaded {_count} torrent files.")
+            
+    def get_magnet(self, id_):
+        view_link = "{0}{1}".format(self.base__view__link, str(id_))
+        html = requests.get(view_link).content
+        soup = BeautifulSoup(html, 'lxml')
+        return soup.find('a', 'card-footer-item').get('href')
                         
 
     # This is purely exprimental, not guaranteed to 
