@@ -19,6 +19,13 @@ class DataProcess(object):
         self.base__view__link = "https://nyaa.si/view/"
         self.base__dir = os.path.dirname(__file__)
         
+    def _check_registration(self):
+        html = requests.get('https://nyaa.si/register').content
+        soup = BeautifulSoup(html, 'lxml')
+        if soup.find('pre'):
+            return "Registations are currently closed."
+        else:
+            return "Registrations are now open."
         
     def get_torrent_link(self, url):
         BASE_TORRENT_LINK = "https://nyaa.si/download/"
@@ -112,7 +119,7 @@ class DataProcess(object):
         return self.get_data(feed_data)
 
 
-    def get_file(self, id_):
+    def _get_file(self, id_):
         try:
             # get file name first
             html = requests.get((self.base__view__link + str(id_))).content
@@ -125,6 +132,7 @@ class DataProcess(object):
                 print('Directory created.')
             else:
                 print('directory exists.')
+            print(f"file name: {title}")
             with requests.get(url, stream=True) as r:
                 r.raise_for_status()
                 invalid_chars = f'<>:"\/|?*'
@@ -140,7 +148,7 @@ class DataProcess(object):
             print('file saved.')
 
     # get multiple files from structure                  
-    def get_data(self, item_list):
+    def _get_data(self, item_list):
         """
             Download torrent files from a list of item provided by _parse_rss_feed()
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -175,11 +183,17 @@ class DataProcess(object):
         finally:
             print(f"Downloaded {_count} torrent files.")
             
-    def get_magnet(self, id_):
+    def _get_magnet(self, id_, file=False):
         view_link = "{0}{1}".format(self.base__view__link, str(id_))
         html = requests.get(view_link).content
         soup = BeautifulSoup(html, 'lxml')
-        return soup.find('a', 'card-footer-item').get('href')
+        if file == True:
+            with open(os.path.join((self.base__dir + r'\automated'), 'magnet.txt'), "w") as f:
+                f.write(soup.find('a', 'card-footer-item').get('href'))
+                f.close()
+                return
+        if file == False:
+            return print(soup.find('a', 'card-footer-item').get('href'))
                         
 
     # This is purely exprimental, not guaranteed to 
@@ -216,7 +230,7 @@ class DataProcess(object):
     # Nyaa Scraper methods/properties
     ########################################################
     
-    def parse_scraper_data(self, url="http://nyaa.si/", pages=None, per_page=None):
+    def _parse_scraper_data(self, url="http://nyaa.si/", pages=None, per_page=None):
         _count = 0
         if pages == None:
             print("Pages value was not provided.")
@@ -227,7 +241,10 @@ class DataProcess(object):
         try:
             for p in range(1, (2 if pages is None else (pages + 1))):
                 if pages is not None:
-                    create_url = url + f"&?p={p}"
+                    # kind of a hack, but it works
+                    if url[-1] == "/":
+                        url = url + "?"
+                    create_url = url + f"&p={p}"
                     print(create_url)
                 html = requests.get(create_url if pages is not None else url).content
                 soup = BeautifulSoup(html, "lxml")
@@ -299,7 +316,7 @@ class DataProcess(object):
             print('no connection error')
 
 
-    def get_magnet_links(self, item_list):
+    def _get_magnet_links(self, item_list):
         try:
             _count = 0
             mdir = os.path.join(self.base__dir, "automated")
@@ -308,7 +325,6 @@ class DataProcess(object):
                 print('Directory created.')
             else:
                 print('directory exists.')
-
             with open(os.path.join(mdir, 'magnets.txt'), "w") as f:
                 for i in item_list['data']:
                     f.write(f"{i['magnet_link']} \n")
@@ -316,7 +332,4 @@ class DataProcess(object):
             f.close()
         finally:
             print(f"Saved {_count} magnet links.")
-            
-            
-debug = DataProcess()
-pp = pprint.PrettyPrinter(indent=4)
+

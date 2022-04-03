@@ -7,7 +7,6 @@
         ---Magnet links file can have more file info as optional
         ---"optional" add exceeding pages exception
 """
-
 from bs4 import BeautifulSoup
 from json import JSONDecodeError
 from DataProcess import DataProcess
@@ -17,7 +16,6 @@ import pprint
 class NyaaScraper(DataProcess):
     def __init__(self):
         super().__init__()
-        self.base__url = "http://nyaa.si/"
     
     ##################################################################
     ## Debug Methods for NyaaScraper
@@ -32,8 +30,8 @@ class NyaaScraper(DataProcess):
         return mlist
     
     
-    def get_latest_torrent_data(self, rtype='dict', pages=None, per_page=None):
-        page_data = self.parse_scraper_data(pages=pages, per_page=per_page)
+    def get_latest_data(self, rtype='dict', pages=None, per_page=None):
+        page_data = self._parse_scraper_data(pages=pages, per_page=per_page)
         try:
             if rtype == 'json':
                 return json.dumps(page_data)
@@ -49,13 +47,13 @@ class NyaaScraper(DataProcess):
     
     
     def get_latest_torrent_files(self, pages=None, per_page=None):
-        pages_data = self.parse_scraper_data(pages=pages, per_page=per_page)
-        self.get_data(pages_data)
+        pages_data = self._parse_scraper_data(pages=pages, per_page=per_page)
+        self._get_data(pages_data)
         
     
     def get_latest_magnet_links(self, pages=None, per_page=None):
-        pages_data = self.parse_scraper_data(pages=pages, per_page=per_page)
-        self.get_magnet_links(pages_data)
+        pages_data = self._parse_scraper_data(pages=pages, per_page=per_page)
+        self._get_magnet_links(pages_data)
         
         
     ##########################################################
@@ -65,62 +63,60 @@ class NyaaScraper(DataProcess):
     ##########################################################
     
     
-    def get_data_by_query(self, filter_=None, search_string=None, category=None, username=None, pages=None, per_page=None):
+    def get_data_by_query(self, filter_=None, search_query=None, category=None, username=None, pages=None, per_page=None):
         # Maybe we can move this somewhere else...
         scraper_data = OrderedDict({
             "title" : f"Nyaa Scraper v0.1 (Under construction v0204)",
-            "description": f"Nyaa scraper for {search_string}"
+            "description": f"Nyaa scraper for {search_query}"
         })
-        search_url = self.create_search_query(
+        search_url = self._create_search_query(
             filter_=filter_, 
-            search_string=search_string, 
+            search_query=search_query, 
             category=category, 
             username=username,
             search_type="scraper")
-        print(f"Search link: {search_url}")
-        return self.parse_scraper_data(url=search_url, pages=pages, per_page=per_page)
+        return self._parse_scraper_data(url=search_url, pages=pages, per_page=per_page)
     
     
     def get_torrent_files_by_query(self,
                                    filter_=None,
-                                   search_string=None,
+                                   search_query=None,
                                    category=None,
                                    username=None,
                                    pages=None,
                                    per_page=None):
         scraper_data = OrderedDict({
         "title" : f"Nyaa Scraper v0.1 (Under construction v0204)",
-        "description": f"Nyaa scraper for {search_string}"
+        "description": f"Nyaa scraper for {search_query}"
         })
-        search_url = self.create_search_query(filter_=filter_,
-                                              search_string=search_string,
+        search_url = self._create_search_query(filter_=filter_,
+                                              search_query=search_query,
                                               category=category,
                                               username=username,
                                               search_type='scraper')
-        print(f"Search link: '{search_url}")
-        data = self.parse_scraper_data(url=search_url)
-        return self.get_data(data)
+        data = self._parse_scraper_data(url=search_url)
+        return self._get_data(data)
+
 
     def get_magnet_links_by_query(self,
                                 filter_=None,
-                                search_string=None,
+                                search_query=None,
                                 category=None,
                                 username=None,
                                 pages=None,
                                 per_page=None):
-        search_url = self.create_search_query(filter_=filter_,
-                                              search_string=search_string,
+        search_url = self._create_search_query(filter_=filter_,
+                                              search_query=search_query,
                                               category=category,
                                               username=username,
                                               search_type='scraper')
-        print(f"Search link {search_url}")
-        data = self.parse_scraper_data(url=search_url, pages=pages, per_page=per_page)
-        return self.get_magnet_links(data)
+        data = self._parse_scraper_data(url=search_url, pages=pages, per_page=per_page)
+        return self._get_magnet_links(data)
+
 
     def get_data_by_username(self, username, rtype='dict', pages=None, per_page=None):
-        search_url = self.create_search_query(username=username, search_type='scraper')
-        print(f"Search link {search_url}")
-        data = self.parse_scraper_data(url=search_url, pages=pages, per_page=per_page)
+        search_url = self._create_search_query(username=username, search_type='scraper')
+        data = self._parse_scraper_data(url=search_url, pages=pages, per_page=per_page)
         if rtype == 'dict':
             return data
         if rtype == 'json':
@@ -129,23 +125,19 @@ class NyaaScraper(DataProcess):
             raise TypeError("Specify data type for 'rtype' argument. 'dict' to return a dictionary, 'json' for JSON object notation.")
 
     def get_files_by_username(self, username:None, rtype='torrent', pages=None, per_page=None):
-        search_url = self.create_search_query(username=username, search_type='scraper')
-        print(f"Search link {search_url}")
-        data = self.parse_scraper_data(url=search_url, pages=pages, per_page=per_page)
+        search_url = self._create_search_query(username=username, search_type='scraper')
+        data = self._parse_scraper_data(url=search_url, pages=pages, per_page=per_page)
         if rtype == 'magnet':
-            return self.get_magnet_links(data)
+            return self._get_magnet_links(data)
         if rtype == 'torrent':
-            return self.get_data(data)
+            return self._get_data(data)
         if rtype is not ['magnet', 'torrent']:
             raise TypeError("Please specify return type. either 'magnet' for links / 'torrent' for files ")
         
         
     def get_torrent_by_id(self, id_=None):
-        self.get_file(id_=id_)
+        self._get_file(id_=id_)
     
     
-    def get_magnet_by_id(self, id_=None):
-        return self.get_magnet(id_=id_)
-        
-debug = NyaaScraper()
-pp = pprint.PrettyPrinter(indent=4)
+    def get_magnet_by_id(self, id_=None, file=None):
+        return self._get_magnet(id_=id_, file=file)
