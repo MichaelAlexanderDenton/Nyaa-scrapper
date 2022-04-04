@@ -1,4 +1,7 @@
-﻿./automated
-./automated/*
-./__pycache/
-./__pycache/*
+﻿/NyaaPy/automated
+/NyaaPy/automated/*
+/NyaaPy/automated/*.torrent
+/NyaaPy/__pycache__/
+/NyaaPy/__pycache__/*
+
+
