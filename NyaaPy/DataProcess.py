@@ -12,29 +12,48 @@ import pprint
 from collections import OrderedDict
 from bs4 import BeautifulSoup
 class DataProcess(object):
-    def __init__(self):
+    def __init__(self, directory=None):
         self.base__url = "http://nyaa.si/?"
         self.base__rss_url = "https://nyaa.si/?page=rss"
         self.base__torrent__link = "https://nyaa.si/download/"
         self.base__view__link = "https://nyaa.si/view/"
+        self.registration__link = "https://nyaa.si/register"
         self.base__dir = os.path.dirname(__file__)
+        self.default__dir = self._create_default_directory(dirname=directory)
         
     def _check_registration(self):
-        html = requests.get('https://nyaa.si/register').content
+        html = requests.get(self.registration__link).content
         soup = BeautifulSoup(html, 'lxml')
         if soup.find('pre'):
             return "Registations are currently closed."
         else:
             return "Registrations are now open."
-        
-    def get_torrent_link(self, url):
-        BASE_TORRENT_LINK = "https://nyaa.si/download/"
+       
+       
+    def _create_default_directory(self, dirname=None):
+        if dirname is not None:
+            if os.path.exists(dirname) == False:
+                print('custom directory does not exist')
+                os.mkdir(dirname) 
+                return dirname    
+        else:
+            mdir = os.path.join(self.base__dir, "automated")
+            if os.path.exists(mdir) == False:
+                os.mkdir(mdir)
+                print('Default directory created.')
+            else:
+                print('Default directory exists.')
+            return mdir
+           
+             
+    def _get_torrent_link(self, url):
+        BASE_TORRENT_LINK = self.base__torrent__link
         torrent_id = re.findall(r'([0-9]+)', url)[0]
         return '{0}{1}.torrent'.format(BASE_TORRENT_LINK, torrent_id)
     
     
-    def create_torrent_link_by_id(self, id=int()):
-        return '{0}{1}.torrent'.format(self.base__torrent__link, id)
+    # def create_torrent_link_by_id(self, id=int()):
+    #     return '{0}{1}.torrent'.format(self.base__torrent__link, id)
     
         
     def get_magnet_link(self, url):
@@ -64,7 +83,7 @@ class DataProcess(object):
         for item in (items[:limit] if limit is not None else items):
             anime = OrderedDict()
             anime['title'] = item.title.text.strip()
-            anime['torrent_file'] = self.get_torrent_link(item.guid.text.strip())
+            anime['torrent_file'] = self._get_torrent_link(item.guid.text.strip())
             anime['info_link'] = {
                 "url" : item.guid.text.strip(),
                 "isPermaLink" : item.guid.get('isPermaLink')
@@ -126,12 +145,7 @@ class DataProcess(object):
             soup = BeautifulSoup(html, 'lxml')
             title = soup.find('h3', 'panel-title').text.strip()
             url = f"{self.base__torrent__link}{id_}.torrent"
-            mdir = os.path.join(self.base__dir, "automated")
-            if os.path.exists(mdir) == False:
-                os.mkdir(mdir)
-                print('Directory created.')
-            else:
-                print('directory exists.')
+            mdir = self.default__dir
             print(f"file name: {title}")
             with requests.get(url, stream=True) as r:
                 r.raise_for_status()
@@ -149,24 +163,10 @@ class DataProcess(object):
 
     # get multiple files from structure                  
     def _get_data(self, item_list):
-        """
-            Download torrent files from a list of item provided by _parse_rss_feed()
-            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-        args:
-            item_list   --> a list of items with item'[torrent_link'] attr to retrieve torrent link
-            
-        """
         try:
             _count = 0
-            mdir = os.path.join(self.base__dir, "automated")
-            # check if directory exists
-            if os.path.exists(mdir) == False:
-                os.mkdir(mdir)
-                print('Directory created.')
-            else:
-                print('directory exists.')
-                
+            mdir = self.default__dir
+            print(mdir)
             for item in item_list['data']:
                 with requests.get(item['torrent_file'], stream=True) as r:
                     r.raise_for_status()

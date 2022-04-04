@@ -14,8 +14,8 @@ from collections import OrderedDict
 import json
 import pprint
 class NyaaScraper(DataProcess):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, directory=None):
+        super().__init__(directory=directory)
     
     ##################################################################
     ## Debug Methods for NyaaScraper
