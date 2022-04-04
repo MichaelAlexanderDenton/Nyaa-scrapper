@@ -1,2 +1,4 @@
 ﻿./automated
 ./automated/*
+./__pycache/
+./__pycache/*

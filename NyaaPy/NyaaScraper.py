@@ -141,3 +141,7 @@ class NyaaScraper(DataProcess):
     
     def get_magnet_by_id(self, id_=None, file=None):
         return self._get_magnet(id_=id_, file=file)
+
+
+scraper = NyaaScraper()
+scraper.get_latest_torrent_files(pages=1, per_page=10)
