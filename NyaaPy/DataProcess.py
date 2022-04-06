@@ -3,6 +3,7 @@
     ----requests.exceptions.HTTPError: 404 Client Error: NOT FOUND for url: https://nyaa.si/download/647951
 """
 
+import helpers
 import requests
 import urllib.parse
 import urllib3
@@ -11,6 +12,7 @@ import os
 import pprint
 from collections import OrderedDict
 from bs4 import BeautifulSoup
+
 class DataProcess(object):
     def __init__(self, directory=None):
         self.base__url = "http://nyaa.si/?"
@@ -62,7 +64,12 @@ class DataProcess(object):
         return soup.find('a', 'card-footer-item').get('href').strip()
     
     def _parse_rss_feed(self, url=None, limit=None):
-        _count = 0
+        if isinstance(limit, str):
+            if str(limit).isnumeric() == False:
+                raise ValueError('limit should not be a string.')
+            else:
+                limit = int(limit)
+        
         url = self.base__rss_url if url is None else url
         html = requests.get(url).content
         soup = BeautifulSoup(html, features='lxml')
@@ -77,7 +84,7 @@ class DataProcess(object):
             },
             "data": list(),    
         })
-
+        _count = 0
         # Find all torrent files and magnets
         items = soup.find_all('item')
         for item in (items[:limit] if limit is not None else items):
@@ -115,12 +122,12 @@ class DataProcess(object):
         query_array = list()
         query = str()
         if filter_ is not None:
-            query_array.append(dict({"f" : filter_}))
+            query_array.append(dict({"f" :helpers._create_filters_query(_filter=filter_)}))
         if search_query is not None:
             search_query = search_query.replace(' ', '+')
             query_array.append(dict({"q": search_query}))
         if category is not None:
-            query_array.append(dict({"c" : category}))
+            query_array.append(dict({"c" : helpers._create_category_query(category=category)}))
         if username is not None:
             query_array.append(dict({"u" : username}))
         
@@ -135,7 +142,7 @@ class DataProcess(object):
     # RSS torrent file retrieval
     def _rss_get_torrent_files(self, url=None, limit=None):
         feed_data = self._parse_rss_feed(url=url, limit=limit)
-        return self.get_data(feed_data)
+        return self._get_data(feed_data)
 
 
     def _get_file(self, id_):

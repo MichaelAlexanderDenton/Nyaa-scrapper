@@ -31,6 +31,8 @@ class NyaaRSS(DataProcess):
             if rtype == 'debug':
                 print(f"Object type: {feed_data.__class__()}")
                 pp.pprint(feed_data)
+            if rtype is not ['json', 'debug', 'dict']:
+                raise ValueError('Invalid value for rtype. Try again.')
         except JSONDecodeError:
             raise ('Error while parsing data to JSON notation.')
         
@@ -38,12 +40,12 @@ class NyaaRSS(DataProcess):
         return self._rss_get_torrent_files(limit=limit)
         
         
-    def query_search_data(self, 
-                            filter_=None, 
-                            search_query=None, 
-                            category=None,
-                            username=None,
-                            limit=None):
+    def get_data_by_query(self, 
+                                filter_=None, 
+                                search_query=None, 
+                                category=None,
+                                username=None,
+                                limit=None):
         
         search_url = self._create_search_query(filter_=filter_, 
                                      search_query=search_query, 
@@ -54,7 +56,7 @@ class NyaaRSS(DataProcess):
         return self._parse_rss_feed(search_url, limit=limit)
 
     
-    def query_search_torrents(self, 
+    def get_torrents_by_query(self, 
                                 filter_=None, 
                                 search_query=None, 
                                 category=None, 
@@ -77,3 +79,7 @@ class NyaaRSS(DataProcess):
     def get_torrents_by_username(self, username=None, limit=None):
         search_url = self._create_search_query(username=username, search_type='rss')
         self._rss_get_torrent_files(search_url, limit=limit)
+        
+
+rss = NyaaRSS()
+rss.get_data_by_query(search_query="Digimon Adventure", category=("Anime", "English-translated"), filter_="no remake")
