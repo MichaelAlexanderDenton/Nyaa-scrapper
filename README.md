@@ -43,23 +43,29 @@ Get and parse metadata from the RSS feed, you'll need to pass the return type (r
 
 You can download the torrent files available in the feed with just one simple function! It takes one parameter, limit, which is
 the same from [get_latest_feed_data()]. if default directory wasn't changed, all files downloaded are gonna be stored in: './automated'.
-
+```
 # limit is optional.
 rss.get_latest_torrent_files(limit=5)
+```
 
 ### Get Search metadata from the feed:
 
 ``` self.get_data_by_query(filter_=None, search_query=None, category=None, username=None, limit=None) ```
 
-This method will get and parse data using a custom search, it takes severals parameters to refine your search:
-filter_ ==> str. Can be either "no filter", "no remake", "trusted only", if no value was entered, it won't be passed on the query. raises ValueError if the value wasn't not in any of the filters above.
+This method will get and parse data using a custom search, it takes severals parameters to refine your search: <br />
 
-search_query ==> str. Your search text, raises ValueError if this parameter was not passed.
-category ==> tuple. category must be (your_main_category, your_sub_category). won't be included in query if nothing was passed.
-username ==> str. Torrents posted by that user.
-limit ==> int. Limit how many items you get from the feed.
+filter_ ==> str. Can be either "no filter", "no remake", "trusted only", if no value was entered, it won't be passed on the query. raises ValueError if the value wasn't not in any of the filters above.<br />
 
-``` rss.get_data_by_query(filter_='no remake', search_query='Digimon Adventure', category=('anime', "English-translated"), username="TonyGabagoolSoprano") ```
+search_query ==> str. Your search text, raises ValueError if this parameter was not passed.<br />
+
+category ==> tuple. category must be (your_main_category, your_sub_category). won't be included in query if nothing was passed.<br />
+
+username ==> str. Torrents posted by that user.<br />
+
+limit ==> int. Limit how many items you get from the feed.<br />
+
+``` rss.get_data_by_query(filter_='no remake', search_query='Digimon Adventure', category=('anime', "English-translated"), username="TonyGabagoolSoprano")```
+
 You can also download all torrent files using:
 
 ``` self.get_torrents_by_query(filter_="trusted only", search_query='Digimon Adventure', category=('anime', "English Translated"), limit=20) ```
