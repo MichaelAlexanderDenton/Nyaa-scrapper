@@ -82,3 +82,81 @@ While you can do this with the methods above, this just facilitate the search by
 Or you can use get_torrents_by_username() to download all torrent files from that feed:
 
 ``` self.get_torrents_by_username(username="GetMeSomeGabagool69") ```
+
+
+# NyaaScraper
+
+NyaaScraper is a web scraper version of NyaaRSS, with a few additional methods that makes your search a lot easier! To instantiate a class, you simply:
+
+```
+    # Instantiate a class
+    # Directory parameter is optional.
+    scraper = NyaaScraper(directory="C:/downloads")         # Make sure that directory exists!
+
+```
+
+## Scrape latest data:
+
+This works the same as rss.get_latest_feed_data(), with the advantage of going through multiple pages and scrape data off of them:
+
+``` 
+    # getting data from the first two pages
+    scraper.get_latest_data(rtype="json", pages=2, per_page=10)
+```
+This will fetch data from the first two pages, and get 10 items from each page and returns the results as a JSON object.
+
+There's also another method that downloads torrent files off these pages!:
+
+``` 
+    # getting torrent files from the first two pages
+    scraper.get_latest_torrent_files(pages=2, per_page=10)
+```
+
+Or, if you want to get magnet links only, there's also a method for that!:
+
+``` 
+    # getting torrent files from the first two pages
+    scraper.get_latest_magnet_links(pages=2, per_page=10)
+```
+
+## Scrape data by search input:
+
+You can make a custom search input and extract data/torrents/magnets off of it. It takes the same parameters as rss.get_data_by_query():
+
+``` 
+    # Get data by using a search_query
+    scraper.get_data_by_query(filter_="no remake", search_query="Digimon Adventure", category=("Anime", "Raw"), pages=2)
+    
+    # Get torrent files
+    scraper.get_torrent_files_by_query(search_query="Digimon Adventure", pages=3, per_page=15)
+    
+    # Get magnet links
+    scraper.get_magnet_links_by_query(category=("Literature", "Raw"), search_query="Digimon Adventure", pages=3, per_page=15)       # It's fu#king RAW!!!
+    
+```
+The only additional parameters for these methods are: <br />
+``` pages ```       ==> takes a number. if no value was present, it'll only scrape the first page. Optional.
+``` per_page ```    ==> takes a number. if no value was present, it'll scraper all items available in the pages. Optional.
+
+# Scrape data by username:
+
+Takes a username as a parameter, raises an error if no value was present:
+```
+   # receiving data by username as a dictionary
+   scraper.get_data_by_username(username="TonyGabagoolSoprano69", rtype="dict", pages=4, per_page=23) 
+   
+```
+
+One method that is different from the ones above is get_files_by_username(). It takes a new parameter ```rtype```, "magnet" for saving magnet links a ```.txt``` format, or "torrent" for downloading torrent files:
+
+```
+    # downloading torrent files by username
+    scraper.get_files_by_username(rtype="torrent", username="TonyGabagoolSoprano69")
+    
+    # saving magnet links:
+    scraper.get_files_by_username(rtype="magnet", username="TonyGabagoolSoprano69")
+    
+```
+Raises an ValueError if no ```rtype``` was present.
+
+
