@@ -9,7 +9,6 @@ and get data in a dict form or JSON for your own use.
 To get started. instantiate NyaaRSS or NyaaScraper class depending on your need, you can set the main directory or leave it empty. Default directory would be : './automated'
 
 ```
-
     # instantiating RSS class
     rss = NyaaRSS(directory="your/custom/directory/")
 
@@ -21,7 +20,6 @@ To get started. instantiate NyaaRSS or NyaaScraper class depending on your need,
 
     # Or you can get torrent files for your search input!
     scraper.get_torrents_by_query(search_query="Digimon Adventure", category=("Anime", "English-translated"))
-
 ```
 
 ## NyaaRSS
