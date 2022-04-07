@@ -47,7 +47,7 @@ cats = [
     ]}
 ]
 
-def _create_category_query(category=tuple) -> str():
+def _create_category_query(category=tuple()) -> str():
     user_main_cat = category[0]
     user_sub_cat = category[1]
     print("main cat {0}. sub cat {1}".format(user_main_cat, user_sub_cat))
@@ -67,14 +67,11 @@ def _create_category_query(category=tuple) -> str():
     print("Main category: {0} - sub-category:{1}".format(main_cat, sub_cat))
     return "{0}_{1}".format(main_cat, sub_cat)
     
-def _create_filters_query(_filter):
+
+def _create_filters_query(_filter=str()) -> int():
     if _filter in filters:
         return filters.index(_filter)
     else:
         raise ValueError('Invalid filter input. check documentation for more info.')
         
-             
-     
-                    
-_create_category_query(category=("Anime", "English-translated"))
 

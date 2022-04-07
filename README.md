@@ -1,17 +1,27 @@
 ﻿# NyaaPy Downloader
+A simple, yet useful Nyaa.si web scraper and RSS feed parser.
 
-small > A simple, yet useful Nyaa.si web scraper and RSS feed parser.
-
-desc > NyaaPy is a RSS feed parser and web scraper for Nyaa.si website, you can search for metadata using ID, username...etc
+NyaaPy is a RSS feed parser and web scraper for Nyaa.si website, you can search for metadata using ID, username...etc
 and get data in a dict form or JSON for your own use.
 
 ## Get Started.
 
 To get started. instantiate NyaaRSS or NyaaScraper class depending on your need, you can set the main directory or leave it empty. Default directory would be : './automated'
 
-code >
+"""
+    # instantiating RSS class
     rss = NyaaRSS(directory="your/custom/directory/")
+
+    # instantiating scraper class
+    scraper = NyaaScraper()
+
+    # Get latest RSS feed data as a dictionary
     rss.get_latest_feed_data()
+
+    # Or you can get torrent files for your search input!
+    scraper.get_torrents_by_query(search_query="Digimon Adventure", category=("Anime", "English-translated"))
+    
+"""
 
 ## NyaaRSS
 

@@ -80,6 +80,3 @@ class NyaaRSS(DataProcess):
         search_url = self._create_search_query(username=username, search_type='rss')
         self._rss_get_torrent_files(search_url, limit=limit)
         
-
-rss = NyaaRSS()
-rss.get_data_by_query(search_query="Digimon Adventure", category=("Anime", "English-translated"), filter_="no remake")
