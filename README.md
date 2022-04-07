@@ -160,3 +160,28 @@ One method that is different from the ones above is get_files_by_username(). It 
 Raises an ValueError if no ```rtype``` was present.
 
 
+## Downloading single file by ID:
+This can be handy in some situations, all you need is an ID and the method will fetch that file/magnet link for you!
+
+```
+    scraper.get_torrent_by_id(id_=1440531)
+```
+
+```id_```       ==> takes a number, returns a ValueError if no ```id_``` was entered.
+
+Or magnet links:
+
+```
+    scraper.get_magnet_by_id(id_=1440531, file=True)
+```
+
+``` file ```    ==> Boolean. default set to ``` False ``` and will return the magnet link, ``` True ``` will save the magnet in the directory (default ``` ./automated ```) as ``` magnet.txt ```
+
+``` 
+    This document, and the program are still under development, if any bugs or mistakes on the document, either pull a request and fix it if you know how,
+    or just report it to the issues section and I'll get to it.
+    
+    This is my first program I wrote, so it's not very pretty, any suggestions or any website to scrape or ideas, let me know ;-)
+  
+```
+
