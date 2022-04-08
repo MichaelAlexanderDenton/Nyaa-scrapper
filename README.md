@@ -1,4 +1,4 @@
-﻿[08/04/2022] : First public release.
+﻿[08/04/2022] : First public release. <br />
 [29/03/2022] : Initial Commit.
 
 # NyaaPy Downloader
