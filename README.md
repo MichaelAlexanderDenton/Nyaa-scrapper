@@ -1,4 +1,7 @@
-﻿# NyaaPy Downloader
+﻿[08/04/2022] : First public release.
+[29/03/2022] : Initial Commit.
+
+# NyaaPy Downloader
 A simple, yet useful Nyaa.si web scraper and RSS feed parser.
 
 NyaaPy is a RSS feed parser and web scraper for Nyaa.si website, you can search for metadata using ID, username...etc
